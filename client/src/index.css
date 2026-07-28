@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  --color-accent: #06b6d4; /* cyan-500 */
+  
+  --color-sentinel-dark-900: #0f172a;
+  --color-sentinel-dark-800: #1e293b;
+  --color-sentinel-dark-700: #334155;
+
+  --font-sans: 'Inter', sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-sentinel-dark-900 text-slate-200 font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .glassmorphism {
+    @apply bg-sentinel-dark-800/60 backdrop-blur-md border border-slate-700/50 shadow-xl;
+  }
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-accent;
+  }
+  .animated-border {
+    @apply relative before:absolute before:-inset-0.5 before:rounded-lg before:bg-gradient-to-r before:from-primary-500 before:to-accent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:-z-10 z-0;
+  }
+  .glow-effect {
+    @apply shadow-[0_0_15px_rgba(99,102,241,0.5)];
+  }
+}

@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pillow
+python-dotenv
+pydantic
+aiohttp
+aiofiles
+numpy
+scikit-learn
+transformers
+torch
+python-jose[cryptography]
+passlib
+httpx
