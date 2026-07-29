@@ -3,6 +3,7 @@ import {
   getEvidences, 
   getEvidenceById, 
   createEvidence, 
+  generateHashAndSave,
   updateEvidence, 
   deleteEvidence,
   verifyEvidence,
@@ -12,6 +13,9 @@ import { protect, authorize } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
+
+// Dedicated SHA-256 Hashing Endpoint
+router.post('/hash', upload.single('file'), generateHashAndSave);
 
 router.route('/')
   .get(getEvidences)
