@@ -134,9 +134,11 @@ export const createEvidence = async (req, res, next) => {
     // Step 2: Upload to Pinata / IPFS (with fallback if Pinata API keys not configured)
     let ipfsHash = 'Qm' + crypto.createHash('sha256').update(fileHash + Date.now()).digest('hex').slice(0, 44);
     try {
-      if (process.env.PINATA_JWT) {
-        const stream = fs.createReadStream(filePath);
-        const pinataRes = await pinata.upload.file(stream);
+      if (process.env.PINATA_JWT && process.env.PINATA_JWT !== 'your_pinata_jwt' && process.env.PINATA_JWT !== '') {
+        const fileData = fs.readFileSync(filePath);
+        const blob = new Blob([fileData]);
+        const fileObj = new File([blob], req.file.originalname || 'evidence.dat', { type: req.file.mimetype || 'application/octet-stream' });
+        const pinataRes = await pinata.upload.file(fileObj);
         if (pinataRes?.IpfsHash) {
           ipfsHash = pinataRes.IpfsHash;
         }
