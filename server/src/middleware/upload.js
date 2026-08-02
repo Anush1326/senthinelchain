@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
 // Check file type
 const fileFilter = (req, file, cb) => {
   // Allowed extensions for evidence
-  const allowedExts = /jpeg|jpg|png|gif|webp|pdf|doc|docx|mp4|avi|mov|mkv|eml|msg|pcap|pcapng|cap|zip|tar|gz|7z|rar|log|txt/i;
+  const allowedExts = /jpeg|jpg|png|gif|webp|pdf|doc|docx|mp4|avi|mov|mkv|mp3|wav|m4a|aac|ogg|flac|eml|msg|pcap|pcapng|cap|zip|tar|gz|7z|rar|log|txt/i;
   const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
   
   const isAllowedExt = allowedExts.test(ext);
@@ -35,7 +35,7 @@ const fileFilter = (req, file, cb) => {
   if (isAllowedExt) {
     return cb(null, true);
   } else {
-    cb(new Error(`Invalid file type '.${ext}'! Supported types: Images, Videos, PDFs, Emails (.eml/.msg), PCAPs, ZIP archives, Logs.`));
+    cb(new Error(`Invalid file type '.${ext}'! Supported types: Images, Videos, Audio (.mp3/.wav), PDFs, Emails (.eml/.msg), PCAPs, ZIP archives, Logs.`));
   }
 };
 

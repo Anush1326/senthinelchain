@@ -9,6 +9,7 @@ import {
   FileImage,
   FileText,
   FileVideo,
+  Headphones,
   Mail,
   Archive,
   Copy,
@@ -84,10 +85,13 @@ const mockEvidenceList = [
   }
 ];
 
+
+
 const CategoryIcon = ({ category }) => {
   switch (category) {
     case 'image': return <FileImage size={18} className="text-blue-400" />;
     case 'video': return <FileVideo size={18} className="text-purple-400" />;
+    case 'audio': return <Headphones size={18} className="text-pink-400" />;
     case 'email': return <Mail size={18} className="text-amber-400" />;
     case 'digital_forensics': return <Archive size={18} className="text-emerald-400" />;
     default: return <FileText size={18} className="text-primary-400" />;
