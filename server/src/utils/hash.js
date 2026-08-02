@@ -44,6 +44,50 @@ export const generateBufferSHA256 = (buffer) => {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 };
 
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+/**
+ * Base58 BTC string encoder for IPFS multihash compatibility.
+ * @param {Buffer} buffer 
+ * @returns {string} Base58 encoded string
+ */
+export const encodeBase58 = (buffer) => {
+  let digits = [0];
+  for (let i = 0; i < buffer.length; i++) {
+    let carry = buffer[i];
+    for (let j = 0; j < digits.length; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry > 0) {
+      digits.push(carry % 58);
+      carry = (carry / 58) | 0;
+    }
+  }
+
+  let string = '';
+  for (let k = 0; k < buffer.length && buffer[k] === 0; k++) {
+    string += '1';
+  }
+  for (let q = digits.length - 1; q >= 0; q--) {
+    string += BASE58_ALPHABET[digits[q]];
+  }
+  return string;
+};
+
+/**
+ * Generate standard IPFS CID v0 (Qm...) from SHA-256 hex string.
+ * Uses 0x1220 multihash prefix + Base58 encoding.
+ * @param {string} sha256Hex 
+ * @returns {string} IPFS CID v0 (e.g. Qm...)
+ */
+export const generateIpfsCidV0 = (sha256Hex) => {
+  const hashBytes = Buffer.from(sha256Hex, 'hex');
+  const multihash = Buffer.concat([Buffer.from([0x12, 0x20]), hashBytes]);
+  return encodeBase58(multihash);
+};
+
 /**
  * Compare file SHA-256 with expected hash string.
  * @param {string} filePath 

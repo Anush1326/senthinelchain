@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { Evidence, AuditLog } from '../models/index.js';
 import { generateHash, formatResponse, paginate } from '../utils/helpers.js';
-import { generateFileHashes, verifySHA256 } from '../utils/hash.js';
+import { generateFileHashes, verifySHA256, generateIpfsCidV0 } from '../utils/hash.js';
 import { submitEvidenceToChain } from '../utils/blockchain.js';
 import { pinata } from '../config/pinata.js';
 import fs from 'fs';
@@ -132,7 +132,7 @@ export const createEvidence = async (req, res, next) => {
     const fileHash = await generateHash(filePath);
 
     // Step 2: Upload to Pinata / IPFS (with fallback if Pinata API keys not configured)
-    let ipfsHash = 'Qm' + crypto.createHash('sha256').update(fileHash + Date.now()).digest('hex').slice(0, 44);
+    let ipfsHash = generateIpfsCidV0(fileHash);
     try {
       if (process.env.PINATA_JWT && process.env.PINATA_JWT !== 'your_pinata_jwt' && process.env.PINATA_JWT !== '') {
         const fileData = fs.readFileSync(filePath);
