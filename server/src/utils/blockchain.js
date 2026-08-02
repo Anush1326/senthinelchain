@@ -8,8 +8,11 @@ let provider;
 let wallet;
 let contract;
 
+const amoyNetwork = ethers.Network.from({ chainId: 80002, name: 'polygon-amoy' });
+
 try {
-  provider = new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://rpc-amoy.polygon.technology/');
+  const rpcUrl = process.env.POLYGON_RPC_URL || process.env.POLYGON_AMOY_RPC_URL || 'https://rpc-amoy.polygon.technology/';
+  provider = new ethers.JsonRpcProvider(rpcUrl, amoyNetwork, { staticNetwork: amoyNetwork });
   const privateKey = process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 66 ? process.env.PRIVATE_KEY : defaultKey;
   wallet = new ethers.Wallet(privateKey, provider);
 } catch (err) {

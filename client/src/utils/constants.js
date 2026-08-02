@@ -1,5 +1,5 @@
-export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000";
-export const CHAIN_ID = 11155111; // Sepolia
+export const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export const CHAIN_ID = 80002; // Polygon Amoy Testnet
 
 export const EVIDENCE_STATUS = {
   PENDING: 'pending',
