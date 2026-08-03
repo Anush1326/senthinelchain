@@ -13,3 +13,5 @@ torch
 python-jose[cryptography]
 passlib
 httpx
+openai
+

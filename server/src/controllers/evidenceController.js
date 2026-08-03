@@ -3,7 +3,8 @@ import { Evidence, AuditLog } from '../models/index.js';
 import { generateHash, formatResponse, paginate } from '../utils/helpers.js';
 import { generateFileHashes, verifySHA256, generateIpfsCidV0 } from '../utils/hash.js';
 import { submitEvidenceToChain } from '../utils/blockchain.js';
-import { pinata } from '../config/pinata.js';
+import { pinata, uploadFileToPinata } from '../config/pinata.js';
+import { analyzeEvidenceWithAI } from '../utils/aiService.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -134,24 +135,22 @@ export const createEvidence = async (req, res, next) => {
     // Step 2: Upload to Pinata / IPFS (with fallback if Pinata API keys not configured)
     let ipfsHash = generateIpfsCidV0(fileHash);
     try {
-      if (process.env.PINATA_JWT && process.env.PINATA_JWT !== 'your_pinata_jwt' && process.env.PINATA_JWT !== '') {
-        const fileData = fs.readFileSync(filePath);
-        const blob = new Blob([fileData]);
-        const fileObj = new File([blob], req.file.originalname || 'evidence.dat', { type: req.file.mimetype || 'application/octet-stream' });
-        const pinataRes = await pinata.upload.file(fileObj);
-        if (pinataRes?.IpfsHash) {
-          ipfsHash = pinataRes.IpfsHash;
-        }
+      const pinataResultCid = await uploadFileToPinata(filePath, req.file.originalname, req.file.mimetype);
+      if (pinataResultCid) {
+        ipfsHash = pinataResultCid;
       }
     } catch (pinataErr) {
       console.warn('Pinata IPFS upload fallback used:', pinataErr.message);
     }
 
-    // Step 3: Submit Evidence to Blockchain Anchor
-    const userWallet = req.user?.walletAddress || '0x1234567890abcdef1234567890abcdef12345678';
-    const tx = await submitEvidenceToChain(fileHash, ipfsHash, userWallet);
+    // Step 3: Call AI Microservice for Evidence Analysis
+    const aiAnalysisResult = await analyzeEvidenceWithAI(filePath, title, category, description);
 
-    // Step 4: Save Evidence record into PostgreSQL
+    // Step 4: Submit Evidence to Blockchain Anchor
+    const userWallet = req.user?.walletAddress || '0x1234567890abcdef1234567890abcdef12345678';
+    const tx = await submitEvidenceToChain(fileHash, ipfsHash, userWallet, title, category);
+
+    // Step 5: Save Evidence record into PostgreSQL
     let parsedTags = [];
     if (tags) {
       try {
@@ -188,13 +187,7 @@ export const createEvidence = async (req, res, next) => {
         tags: parsedTags,
         status: 'pending',
         metadata: evidenceMetadata,
-        aiAnalysis: {
-          metadataConsistency: 99.8,
-          tamperingDetected: false,
-          riskLevel: 'Low Risk',
-          confidenceScore: 98.5,
-          recommendation: 'Evidence verified clean. No signature tampering detected.'
-        },
+        aiAnalysis: aiAnalysisResult,
         uploadedBy: req.user?.id || 'a0000002-0000-0000-0000-000000000002',
         chainOfCustody: [
           {
