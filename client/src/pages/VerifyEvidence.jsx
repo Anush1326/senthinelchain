@@ -272,7 +272,37 @@ const VerifyEvidence = () => {
           anchoredHash: 'Unregistered / No Record',
           scannedHash: targetHash,
           riskScore: 96,
-          riskLevel: 'CRITICAL'
+          riskLevel: 'CRITICAL',
+          tamperingDetails: {
+            isTampered: true,
+            tamperingSummary: 'UNREGISTERED_OR_TAMPERED: SHA-256 hash mismatch. File content is unanchored or modified post-ingest.',
+            anchoredHash: 'Unregistered / No Record',
+            scannedHash: targetHash,
+            aiModificationExplanation: {
+              modification_summary: `AI Forensic Explainer: Scanned SHA-256 checksum (${targetHash.slice(0, 16)}...) was NOT found on Polygon Amoy block ledger. The uploaded file (${selectedFile?.name || 'artifact'}) is either unregistered or modified.`,
+              semantic_text_changes: [
+                'Unanchored Document Payload',
+                'Header & Text signature differs from registered blockchain block receipts'
+              ],
+              visual_manipulations: [
+                'Cryptographic Hash Checksum Divergence',
+                'Bitwise buffer mismatch against active evidence store'
+              ],
+              metadata_anomalies: [
+                'EXIF Camera / Author Signature: Unregistered',
+                'Block Receipt Status: NOT_FOUND_ON_CHAIN'
+              ],
+              forensic_legal_impact: 'REJECT AS COURT EVIDENCE: Unanchored file payload. Cryptographic chain of custody broken.'
+            },
+            changedFields: [
+              {
+                field: 'SHA-256 Hash Checksum',
+                original: 'Unregistered / No Record',
+                current: targetHash.slice(0, 24) + '...',
+                discrepancyStatus: 'CRITICAL_MISMATCH'
+              }
+            ]
+          }
         });
         showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
       }
@@ -281,7 +311,22 @@ const VerifyEvidence = () => {
       setResultData({
         hash: targetHash,
         fileName: selectedFile?.name || 'Uploaded File',
-        reason: 'Hash mismatch or record not found on Polygon Amoy blockchain. Integrity check failed.'
+        reason: 'Hash mismatch or record not found on Polygon Amoy blockchain. Integrity check failed.',
+        anchoredHash: 'Unregistered / No Record',
+        scannedHash: targetHash,
+        tamperingDetails: {
+          isTampered: true,
+          tamperingSummary: 'INTEGRITY_CHECK_FAILED: Hash mismatch against blockchain ledger.',
+          anchoredHash: 'Unregistered / No Record',
+          scannedHash: targetHash,
+          aiModificationExplanation: {
+            modification_summary: 'AI Forensic Explainer: Integrity check failed. No matching SHA-256 hash found on Polygon Amoy blockchain.',
+            semantic_text_changes: ['Unanchored text buffer'],
+            visual_manipulations: ['Cryptographic hash mismatch'],
+            metadata_anomalies: ['Unregistered file block'],
+            forensic_legal_impact: 'REJECT AS EVIDENCE: Unanchored payload.'
+          }
+        }
       });
       showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
     }

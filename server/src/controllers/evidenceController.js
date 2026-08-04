@@ -1036,47 +1036,138 @@ export const simulateAttack = async (req, res, next) => {
       recommendation: 'REJECT AS ORIGINAL EVIDENCE (Content altered post-ingest)'
     };
 
-    const forensicAnalysis = {
-      ssimPercentage: 94.8,
-      changedPixelsCount: 58420,
-      changedPixelsPercentage: 2.84,
-      riskScore: 94.2,
-      confidenceScore: 99.4,
-      riskLevel: 'CRITICAL',
-      aiModificationExplanation: {
-        modification_summary: `AI Forensic Explainer: Evidence file was subjected to '${scenarioId.replace(/_/g, ' ').toUpperCase()}' attack. 2.84% of pixel buffer was modified with 94.8% SSIM structural similarity index drop.`,
-        semantic_text_changes: [
-          `Original Text/Stamp: 'Security Badge Authorized'`,
-          `Modified Text/Stamp: 'Security Badge Removed / Timestamp Altered to +30m'`
+    let forensicAnalysis = {};
+
+    if (scenarioId === 'exif_removal') {
+      // 💥 DESTROYS Scenario
+      forensicAnalysis = {
+        ssimPercentage: 99.8,
+        changedPixelsCount: 1024,
+        changedPixelsPercentage: 0.05,
+        riskScore: 92.5,
+        confidenceScore: 99.8,
+        riskLevel: 'HIGH',
+        aiModificationExplanation: {
+          modification_summary: `AI Forensic Explainer: Evidence file was subjected to 'COMPLETE EXIF METADATA & DATA DESTRUCTION'. Camera serial numbers, GPS headers, and digital security signatures were permanently wiped from file headers.`,
+          semantic_text_changes: [
+            `Digital Watermark Signature: PERMANENTLY ERASED`,
+            `Header Metadata: 1,024 header bytes stripped`
+          ],
+          visual_manipulations: [
+            `Region #1 (HIGH): EXIF Header Data Block erased from file start (0.05% area)`,
+            `Region #2 (CRITICAL): Digital Security Watermark stripped from frame footer`
+          ],
+          metadata_anomalies: [
+            `GPS Coordinates: STRIPPED (Was: '28.6139° N, 77.2090° E')`,
+            `Camera Serial: STRIPPED (Was: 'NIKON-D850-984210')`,
+            `Creation Timestamp: STRIPPED (Was: '${originalRecord.timestamp}')`
+          ],
+          forensic_legal_impact: `REJECT AS COURT EVIDENCE: Permanent destruction of digital metadata and security seals violates FRE 902 rules for authentic digital artifacts.`
+        },
+        boundingBoxes: [
+          { id: 1, bbox: [0, 0, 100, 30], areaPercentage: 0.05, severity: 'HIGH' }
         ],
-        visual_manipulations: [
-          `Region #1 (CRITICAL): Security Badge object removed via generative inpainting (1.85% area)`,
-          `Region #2 (HIGH): Synthetic timestamp overlay injected in upper quadrant (0.99% area)`
+        objectDiff: [
+          { action: 'REMOVED', label: 'EXIF Metadata Headers', confidence: 99.8 },
+          { action: 'REMOVED', label: 'Digital Security Seal', confidence: 98.4 }
         ],
-        metadata_anomalies: [
-          `EXIF Camera Serial: 'CAM-SEC-8842-FRA' altered to 'STRIPPED / Photoshop'`,
-          `Creation Timestamp: '2026-07-28 09:12:00 UTC' shifted to '2026-07-28 09:42:00 UTC (+30m)'`
+        metadataDiff: [
+          { field: 'GPS Location', original: '28.6139° N, 77.2090° E', modified: 'STRIPPED / NULL', status: 'DATA_DESTRUCTION' },
+          { field: 'Camera Serial Number', original: 'NIKON-D850-984210', modified: 'STRIPPED / NULL', status: 'DATA_DESTRUCTION' },
+          { field: 'Creation Timestamp', original: originalRecord.timestamp, modified: 'STRIPPED / NULL', status: 'DATA_DESTRUCTION' }
         ],
-        forensic_legal_impact: `REJECT AS COURT EVIDENCE: Hash mismatch on Polygon Amoy Block #${evidence.blockNumber || 48521000}. Cryptographic chain of custody invalidated.`
-      },
-      boundingBoxes: [
-        { id: 1, bbox: [120, 80, 140, 60], areaPercentage: 1.85, severity: 'CRITICAL' },
-        { id: 2, bbox: [320, 240, 90, 45], areaPercentage: 0.99, severity: 'HIGH' }
-      ],
-      objectDiff: [
-        { action: 'REMOVED', label: 'Security Badge', confidence: 94.5 },
-        { action: 'ADDED', label: 'Synthetic Timestamp Overlay', confidence: 99.1 }
-      ],
-      metadataDiff: [
-        { field: 'EXIF Camera Serial', original: 'CAM-SEC-8842-FRA', modified: 'STRIPPED / Photoshop', status: 'DISCREPANCY' },
-        { field: 'Creation Timestamp', original: '2026-07-28 09:12:00 UTC', modified: '2026-07-28 09:42:00 UTC (+30m)', status: 'CLOCK_SHIFT' }
-      ],
-      findings: [
-        'IPFS Immutability Rule: Bitwise change forced generation of NEW CID, proving content modification',
-        'Polygon Blockchain Ledger: On-chain SHA-256 lookup failed against block receipt',
-        'Error Level Analysis (ELA): Compression grid anomaly detected in upper-left quadrant'
-      ]
-    };
+        findings: [
+          '💥 DESTROYS ATTACK VERIFIED: EXIF camera headers and security signatures were wiped.',
+          'IPFS Immutability Rule: Header stripping generated NEW CID, breaking original hash chain.',
+          'Polygon Blockchain Ledger: On-chain SHA-256 lookup failed against block receipt.'
+        ]
+      };
+    } else if (scenarioId === 'one_pixel_mod') {
+      // ✏️ ALTERS Scenario
+      forensicAnalysis = {
+        ssimPercentage: 99.9,
+        changedPixelsCount: 1,
+        changedPixelsPercentage: 0.001,
+        riskScore: 96.4,
+        confidenceScore: 99.9,
+        riskLevel: 'CRITICAL',
+        aiModificationExplanation: {
+          modification_summary: `AI Forensic Explainer: Evidence file was subjected to '1-PIXEL RGB & DOCUMENT CONTENT ALTERATION'. A targeted pixel edit modified RGB values and altered monetary figures ($12,500 to $125,000) while attempting to force hash divergence.`,
+          semantic_text_changes: [
+            `Original Amount: '$12,500.00 USD'`,
+            `Altered Amount: '$125,000.00 USD' (+1 Zero Injected)`
+          ],
+          visual_manipulations: [
+            `Region #1 (CRITICAL): Targeted 1-Pixel RGB Alteration at coordinate (x:412, y:288)`,
+            `Region #2 (HIGH): Subtle glyph alignment shift in document text block`
+          ],
+          metadata_anomalies: [
+            `Software Tag: 'Adobe Photoshop 2026' injected into header`,
+            `Modify Clock: Shifted by +15 minutes`
+          ],
+          forensic_legal_impact: `REJECT AS COURT EVIDENCE: Document text forgery and 1-pixel bitwise manipulation detected. SHA-256 checksum divergence on Polygon block.`
+        },
+        boundingBoxes: [
+          { id: 1, bbox: [412, 288, 10, 10], areaPercentage: 0.001, severity: 'CRITICAL' }
+        ],
+        objectDiff: [
+          { action: 'MODIFIED', label: 'Document Currency Amount', confidence: 99.9 },
+          { action: 'MODIFIED', label: 'Single Pixel RGB Value (R:240 -> R:241)', confidence: 100.0 }
+        ],
+        metadataDiff: [
+          { field: 'Monetary Amount', original: '$12,500.00', modified: '$125,000.00', status: 'TEXT_FORGERY' },
+          { field: 'Pixel (412, 288) RGB', original: 'RGB(240, 12, 85)', modified: 'RGB(241, 12, 85)', status: 'BITWISE_MUTATION' }
+        ],
+        findings: [
+          '✏️ ALTERS ATTACK VERIFIED: 1-Pixel RGB modification forced bitwise SHA-256 hash divergence.',
+          'Document Forgery Detection: OCR comparison flagged monetary figure alteration ($12,500 -> $125,000).',
+          'Polygon Blockchain Ledger: Hash mismatch detected on Polygon Block #48521000.'
+        ]
+      };
+    } else {
+      // 🙈 HIDES Scenario
+      forensicAnalysis = {
+        ssimPercentage: 88.2,
+        changedPixelsCount: 78540,
+        changedPixelsPercentage: 3.84,
+        riskScore: 98.2,
+        confidenceScore: 99.5,
+        riskLevel: 'CRITICAL',
+        aiModificationExplanation: {
+          modification_summary: `AI Forensic Explainer: Evidence file was subjected to 'INPAINTING OBJECT & FACIAL BLUR CONCEALMENT'. Generative AI inpainting concealed physical evidence (handgun/weapon) and applied a Gaussian blur patch over suspect faces.`,
+          semantic_text_changes: [
+            `Officer ID Badge: CONCEALED / BLACKED OUT`,
+            `Vehicle License Plate: OBFUSCATED via Gaussian Blur`
+          ],
+          visual_manipulations: [
+            `Region #1 (CRITICAL): Handgun / Physical Evidence object removed via generative inpainting (2.85% area)`,
+            `Region #2 (HIGH): Suspect facial features concealed behind Gaussian blur patch (0.99% area)`
+          ],
+          metadata_anomalies: [
+            `Spatial Crop: Border pixels cropped (-5% spatial area)`,
+            `Software Tool: 'Generative AI Inpainting Engine' detected`
+          ],
+          forensic_legal_impact: `REJECT AS COURT EVIDENCE: Intentional evidence concealment and object masking detected via AI inpainting analysis.`
+        },
+        boundingBoxes: [
+          { id: 1, bbox: [150, 120, 160, 90], areaPercentage: 2.85, severity: 'CRITICAL' },
+          { id: 2, bbox: [340, 60, 80, 80], areaPercentage: 0.99, severity: 'HIGH' }
+        ],
+        objectDiff: [
+          { action: 'REMOVED', label: 'Handgun / Physical Weapon Evidence', confidence: 98.2 },
+          { action: 'CONCEALED', label: 'Suspect Face (Gaussian Blur Patch)', confidence: 99.4 }
+        ],
+        metadataDiff: [
+          { field: 'Visual Object State', original: 'Physical Evidence Visible', modified: 'INPAINTED / CONCEALED', status: 'OBJECT_MASKING' },
+          { field: 'Facial Identification', original: 'Unmasked Clear View', modified: 'GAUSSIAN_BLURRED', status: 'IDENTITY_OBFUSCATION' }
+        ],
+        findings: [
+          '🙈 HIDES ATTACK VERIFIED: Physical evidence object (weapon) removed using AI generative inpainting.',
+          'Facial Obfuscation: Suspect facial features masked behind Gaussian blur patch.',
+          'IPFS Immutability Rule: Content modification generated NEW CID, breaking blockchain custody chain.'
+        ]
+      };
+    }
 
     const simulationResult = {
       scenarioId,
