@@ -161,6 +161,9 @@ const UploadEvidence = () => {
     try {
       const data = new FormData();
       data.append('file', selectedFile);
+      if (fileHashPreview) {
+        data.append('fileHash', fileHashPreview);
+      }
       data.append('caseId', formData.caseId);
       data.append('title', formData.title);
       data.append('description', formData.description);

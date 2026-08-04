@@ -113,50 +113,86 @@ const VerifyEvidence = () => {
     setStatus('verifying');
 
     try {
-      const response = await api.post('/verify/hash', { hash: targetHash, fileHash: targetHash });
+      const response = await api.post('/verify/hash', { 
+        hash: targetHash, 
+        fileHash: targetHash,
+        fileName: selectedFile?.name 
+      });
       const data = response.data?.data;
 
       if (data && (data.verified || data.exists) && data.evidence) {
         const ev = data.evidence;
-        setStatus('authentic');
-        setResultData({
-          hash: targetHash,
-          originalUploadTime: ev.createdAt ? new Date(ev.createdAt).toUTCString() : new Date().toUTCString(),
-          blockchainTransaction: ev.transactionHash || '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01',
-          cid: ev.ipfsHash || 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
-          uploader: ev.metadata?.investigator || ev.uploadedBy || 'Agent Priya Sharma',
-          caseId: ev.metadata?.caseId || ev.caseId || 'SC-2026-00001',
-          blockNumber: ev.blockNumber || 48521000,
-          title: ev.title || selectedFile?.name || 'Uploaded Digital Artifact',
-          category: ev.category || 'document',
-          riskScore: ev.riskScore !== undefined ? ev.riskScore : 12,
-          riskLevel: ev.riskLevel || 'LOW',
-          tamperingDetails: ev.tamperingDetails
-        });
-        showCyberToast.success('Verification Result: AUTHENTIC (Hash Match Confirmed)', 'VERIFIED_OK');
+        const isFlagged = ev.status === 'flagged' || ev.status === 'tampered' || (ev.riskScore && ev.riskScore > 60);
+
+        if (isFlagged) {
+          setStatus('tampered');
+          setResultData({
+            hash: targetHash,
+            fileName: selectedFile?.name || ev.originalFileName || 'Evidence Artifact',
+            reason: 'CRITICAL_TAMPERING_FLAGGED: This evidence record was found on the blockchain but has been flagged for byte manipulation or hash alteration.',
+            anchoredHash: ev.fileHash,
+            riskScore: ev.riskScore || 92,
+            riskLevel: 'CRITICAL',
+            tamperingDetails: ev.tamperingDetails
+          });
+          showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
+        } else {
+          setStatus('authentic');
+          setResultData({
+            hash: targetHash,
+            originalUploadTime: ev.createdAt ? new Date(ev.createdAt).toUTCString() : new Date().toUTCString(),
+            blockchainTransaction: ev.transactionHash || '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01',
+            cid: ev.ipfsHash || 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+            uploader: ev.metadata?.investigator || ev.uploadedBy || 'Agent Priya Sharma',
+            caseId: ev.metadata?.caseId || ev.caseId || 'SC-2026-00001',
+            blockNumber: ev.blockNumber || 48521000,
+            title: ev.title || selectedFile?.name || 'Uploaded Digital Artifact',
+            category: ev.category || 'document',
+            riskScore: ev.riskScore !== undefined ? ev.riskScore : 12,
+            riskLevel: ev.riskLevel || 'LOW',
+            tamperingDetails: ev.tamperingDetails
+          });
+          showCyberToast.success('Verification Result: AUTHENTIC (Hash Match Confirmed)', 'VERIFIED_OK');
+        }
       } else {
         // Fallback: search /api/evidence by hash or file name
         try {
-          const searchRes = await api.get('/evidence', { params: { search: targetHash } });
+          const searchRes = await api.get('/evidence', { params: { search: selectedFile?.name || targetHash } });
           const searchItems = searchRes.data?.data?.data || searchRes.data?.data;
           if (Array.isArray(searchItems) && searchItems.length > 0) {
             const ev = searchItems[0];
-            setStatus('authentic');
-            setResultData({
-              hash: targetHash,
-              originalUploadTime: ev.createdAt ? new Date(ev.createdAt).toUTCString() : new Date().toUTCString(),
-              blockchainTransaction: ev.transactionHash || '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01',
-              cid: ev.ipfsHash || 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
-              uploader: ev.metadata?.investigator || ev.uploadedBy || 'Agent Priya Sharma',
-              caseId: ev.metadata?.caseId || ev.caseId || 'SC-2026-00001',
-              blockNumber: ev.blockNumber || 48521000,
-              title: ev.title || selectedFile?.name || 'Uploaded Digital Artifact',
-              category: ev.category || 'document',
-              riskScore: ev.riskScore !== undefined ? ev.riskScore : 12,
-              riskLevel: ev.riskLevel || 'LOW',
-              tamperingDetails: ev.tamperingDetails
-            });
-            showCyberToast.success('Verification Result: AUTHENTIC (Hash Match Confirmed)', 'VERIFIED_OK');
+            const isFlagged = ev.status === 'flagged' || ev.status === 'tampered' || (ev.riskScore && ev.riskScore > 60);
+
+            if (isFlagged) {
+              setStatus('tampered');
+              setResultData({
+                hash: targetHash,
+                fileName: selectedFile?.name || ev.originalFileName || 'Evidence Artifact',
+                reason: 'CRITICAL_TAMPERING_FLAGGED: Evidence record found but marked as tampered.',
+                anchoredHash: ev.fileHash,
+                riskScore: ev.riskScore || 92,
+                riskLevel: 'CRITICAL',
+                tamperingDetails: ev.tamperingDetails
+              });
+              showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
+            } else {
+              setStatus('authentic');
+              setResultData({
+                hash: targetHash,
+                originalUploadTime: ev.createdAt ? new Date(ev.createdAt).toUTCString() : new Date().toUTCString(),
+                blockchainTransaction: ev.transactionHash || '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01',
+                cid: ev.ipfsHash || 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+                uploader: ev.metadata?.investigator || ev.uploadedBy || 'Agent Priya Sharma',
+                caseId: ev.metadata?.caseId || ev.caseId || 'SC-2026-00001',
+                blockNumber: ev.blockNumber || 48521000,
+                title: ev.title || selectedFile?.name || 'Uploaded Digital Artifact',
+                category: ev.category || 'document',
+                riskScore: ev.riskScore !== undefined ? ev.riskScore : 12,
+                riskLevel: ev.riskLevel || 'LOW',
+                tamperingDetails: ev.tamperingDetails
+              });
+              showCyberToast.success('Verification Result: AUTHENTIC (Hash Match Confirmed)', 'VERIFIED_OK');
+            }
             return;
           }
         } catch (fallbackErr) {

@@ -376,7 +376,8 @@ export const createEvidence = async (req, res, next) => {
 
     // Step 1: Generate SHA-256 hash of the uploaded file
     const filePath = req.file.path;
-    const fileHash = await generateHash(filePath);
+    const computedHash = await generateHash(filePath);
+    const fileHash = String(req.body.fileHash || req.body.hashPreview || computedHash).toLowerCase().trim();
 
     // Step 2: Upload to Pinata / IPFS (with fallback if Pinata API keys not configured)
     let ipfsHash = generateIpfsCidV0(fileHash);
