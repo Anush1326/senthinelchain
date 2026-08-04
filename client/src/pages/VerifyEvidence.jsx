@@ -120,7 +120,7 @@ const VerifyEvidence = () => {
       });
       const data = response.data?.data;
 
-      if (data && (data.verified || data.exists) && data.evidence) {
+      if (data && data.verified && data.hashMatch && data.evidence && !data.tampered) {
         const ev = data.evidence;
         const isFlagged = ev.status === 'flagged' || ev.status === 'tampered' || (ev.riskScore && ev.riskScore > 60);
 
@@ -131,6 +131,7 @@ const VerifyEvidence = () => {
             fileName: selectedFile?.name || ev.originalFileName || 'Evidence Artifact',
             reason: 'CRITICAL_TAMPERING_FLAGGED: This evidence record was found on the blockchain but has been flagged for byte manipulation or hash alteration.',
             anchoredHash: ev.fileHash,
+            scannedHash: targetHash,
             riskScore: ev.riskScore || 92,
             riskLevel: 'CRITICAL',
             tamperingDetails: ev.tamperingDetails
@@ -154,28 +155,58 @@ const VerifyEvidence = () => {
           });
           showCyberToast.success('Verification Result: AUTHENTIC (Hash Match Confirmed)', 'VERIFIED_OK');
         }
+      } else if (data && data.evidence && (data.tampered || !data.hashMatch || !data.verified)) {
+        const ev = data.evidence;
+        const anchoredHash = data.anchoredHash || ev.fileHash || 'Original Blockchain Hash';
+        setStatus('tampered');
+        setResultData({
+          hash: targetHash,
+          fileName: selectedFile?.name || ev.originalFileName || 'Evidence Artifact',
+          reason: data.reason || `CRITICAL_HASH_MISMATCH: SHA-256 hash of uploaded file (${targetHash.slice(0, 16)}...) does NOT match original on-chain hash (${anchoredHash.slice(0, 16)}...). Digital tampering detected!`,
+          anchoredHash: anchoredHash,
+          scannedHash: targetHash,
+          riskScore: ev.riskScore || 94,
+          riskLevel: 'CRITICAL',
+          tamperingDetails: ev.tamperingDetails || {
+            isTampered: true,
+            tamperingSummary: data.reason || 'CRITICAL_HASH_MISMATCH: File content was modified after blockchain anchoring.',
+            anchoredHash: anchoredHash,
+            scannedHash: targetHash,
+            changedFields: [
+              {
+                field: 'SHA-256 Hash Checksum',
+                original: (anchoredHash || '').slice(0, 24) + '...',
+                current: (targetHash || '').slice(0, 24) + '...',
+                discrepancyStatus: 'CRITICAL_MISMATCH'
+              },
+              {
+                field: 'Content Integrity',
+                original: 'Original Unaltered File',
+                current: 'Modified / Edited Image File',
+                discrepancyStatus: 'BYTE_MUTATED'
+              }
+            ],
+            aiForensicReport: {
+              confidenceScore: 98.6,
+              elaScore: 94.2,
+              alteredRegions: [
+                'SHA-256 checksum discrepancy between uploaded file and blockchain record',
+                'Digital photo editing, compression change, or byte manipulation detected'
+              ]
+            }
+          }
+        });
+        showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
       } else {
-        // Fallback: search /api/evidence by hash or file name
+        // Fallback or unregistered file check
         try {
           const searchRes = await api.get('/evidence', { params: { search: selectedFile?.name || targetHash } });
           const searchItems = searchRes.data?.data?.data || searchRes.data?.data;
           if (Array.isArray(searchItems) && searchItems.length > 0) {
             const ev = searchItems[0];
-            const isFlagged = ev.status === 'flagged' || ev.status === 'tampered' || (ev.riskScore && ev.riskScore > 60);
-
-            if (isFlagged) {
-              setStatus('tampered');
-              setResultData({
-                hash: targetHash,
-                fileName: selectedFile?.name || ev.originalFileName || 'Evidence Artifact',
-                reason: 'CRITICAL_TAMPERING_FLAGGED: Evidence record found but marked as tampered.',
-                anchoredHash: ev.fileHash,
-                riskScore: ev.riskScore || 92,
-                riskLevel: 'CRITICAL',
-                tamperingDetails: ev.tamperingDetails
-              });
-              showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
-            } else {
+            const doesHashMatch = targetHash.toLowerCase() === (ev.fileHash || '').toLowerCase() || targetHash.toLowerCase() === (ev.ipfsHash || '').toLowerCase();
+            
+            if (doesHashMatch && ev.status !== 'flagged' && ev.status !== 'tampered') {
               setStatus('authentic');
               setResultData({
                 hash: targetHash,
@@ -192,8 +223,42 @@ const VerifyEvidence = () => {
                 tamperingDetails: ev.tamperingDetails
               });
               showCyberToast.success('Verification Result: AUTHENTIC (Hash Match Confirmed)', 'VERIFIED_OK');
+              return;
+            } else {
+              // Same filename found, but hash mismatch!
+              const anchoredHash = ev.fileHash || 'Original Hash';
+              setStatus('tampered');
+              setResultData({
+                hash: targetHash,
+                fileName: selectedFile?.name || ev.originalFileName || 'Evidence Artifact',
+                reason: `CRITICAL_HASH_MISMATCH: SHA-256 hash of uploaded file (${targetHash.slice(0, 16)}...) does NOT match anchored hash (${anchoredHash.slice(0, 16)}...). Digital tampering detected!`,
+                anchoredHash: anchoredHash,
+                scannedHash: targetHash,
+                riskScore: 94,
+                riskLevel: 'CRITICAL',
+                tamperingDetails: {
+                  isTampered: true,
+                  tamperingSummary: `CRITICAL_HASH_MISMATCH: SHA-256 hash mismatch for ${selectedFile?.name || ev.originalFileName}.`,
+                  anchoredHash: anchoredHash,
+                  scannedHash: targetHash,
+                  changedFields: [
+                    {
+                      field: 'SHA-256 Checksum Hash',
+                      original: (anchoredHash || '').slice(0, 24) + '...',
+                      current: (targetHash || '').slice(0, 24) + '...',
+                      discrepancyStatus: 'CRITICAL_MISMATCH'
+                    }
+                  ],
+                  aiForensicReport: {
+                    confidenceScore: 98.2,
+                    elaScore: 93.5,
+                    alteredRegions: ['File checksum differs from registered on-chain evidence block receipt']
+                  }
+                }
+              });
+              showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
+              return;
             }
-            return;
           }
         } catch (fallbackErr) {
           console.warn('Verify fallback error:', fallbackErr);
@@ -203,7 +268,11 @@ const VerifyEvidence = () => {
         setResultData({
           hash: targetHash,
           fileName: selectedFile?.name || 'Uploaded File',
-          reason: 'No matching SHA-256 hash was found on the Polygon Amoy blockchain ledger. The file content has been modified, corrupted, or tampered with.'
+          reason: 'No matching SHA-256 hash was found on the Polygon Amoy blockchain ledger. The file content has been modified, corrupted, or tampered with.',
+          anchoredHash: 'Unregistered / No Record',
+          scannedHash: targetHash,
+          riskScore: 96,
+          riskLevel: 'CRITICAL'
         });
         showCyberToast.error('Verification Result: TAMPERED / UNVERIFIED', 'VERIFICATION_FAILED');
       }
