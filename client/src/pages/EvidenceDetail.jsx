@@ -672,9 +672,20 @@ const EvidenceDetail = () => {
               <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">IPFS Content CID</span>
               <div className="p-3 bg-sentinel-dark-800 rounded-xl border border-slate-700 text-xs font-mono text-primary-300 break-all select-all flex items-center justify-between gap-2">
                 <span>{ev.ipfsHash}</span>
-                <button onClick={() => copyText(ev.ipfsHash, 'ipfs')} className="text-slate-400 hover:text-white shrink-0 p-1">
-                  {copiedField === 'ipfs' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => copyText(ev.ipfsHash, 'ipfs')} className="text-slate-400 hover:text-white p-1" title="Copy CID">
+                    {copiedField === 'ipfs' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  </button>
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${ev.ipfsHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-slate-400 hover:text-primary-300 p-1"
+                    title="View on IPFS Gateway"
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
               </div>
             </div>
 

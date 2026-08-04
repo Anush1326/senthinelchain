@@ -15,7 +15,8 @@ import {
   Cpu,
   Activity,
   User,
-  X
+  X,
+  Globe
 } from 'lucide-react';
 import Navbar from './Navbar';
 import useAuthStore from '../store/authStore';
@@ -37,6 +38,7 @@ const Layout = () => {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Evidence Vault', path: '/evidence', icon: <FileText size={20} /> },
+    { name: 'IPFS Storage', path: '/ipfs', icon: <Globe size={20} /> },
     { name: 'Upload Chain', path: '/evidence/upload', icon: <Upload size={20} /> },
     { name: 'Verify Hash', path: '/verify', icon: <ShieldCheck size={20} /> },
     { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
