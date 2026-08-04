@@ -279,38 +279,38 @@ const Dashboard = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Top Welcome Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-gradient-to-r from-sentinel-dark-800/80 via-sentinel-dark-800/50 to-primary-950/30 p-6 rounded-2xl border border-slate-700/60 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 glass-card p-6 rounded-2xl border border-cyan-500/30 shadow-[0_0_30px_rgba(0,240,255,0.1)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">
-              Welcome back, <span className="gradient-text">{user?.name || 'Agent'}</span>
+          <div className="flex items-center gap-3 mb-1.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-white">
+              Welcome back, <span className="gradient-cyber-title">{user?.name || 'Security Operator'}</span>
             </h1>
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-semibold uppercase flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Amoy Testnet: Active
+            <span className="px-3 py-1 bg-cyan-500/10 text-cyan-300 border border-cyan-500/40 rounded-full text-xs font-mono font-semibold uppercase flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              NODE_STATUS: ONLINE
             </span>
           </div>
-          <p className="text-slate-400 text-sm">
-            SentinelChain AI & Blockchain Evidence Integrity Monitor • <span className="text-primary-400 font-mono">Chain ID: 80002</span>
+          <p className="text-slate-400 text-xs sm:text-sm font-mono">
+            SentinelChain AI & Blockchain Evidence Integrity Monitor • <span className="text-cyan-400 font-bold">NODE_ID #80002</span>
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 relative z-10">
           <Link
             to="/evidence/upload"
-            className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all shadow-lg border border-primary-500/40 active:scale-[0.98]"
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2.5 rounded-xl font-mono font-semibold text-xs transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)] border border-cyan-400/40 hover:scale-[1.02] active:scale-[0.98]"
           >
             <Upload size={16} />
-            <span>Upload Evidence</span>
+            <span>UPLOAD_EVIDENCE</span>
           </Link>
           <Link
             to="/verify"
-            className="flex items-center gap-2 bg-sentinel-dark-800 hover:bg-slate-800 text-slate-200 px-4 py-2.5 rounded-xl font-medium text-sm border border-slate-700 transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-cyan-300 px-4 py-2.5 rounded-xl font-mono font-semibold text-xs border border-cyan-500/30 transition-all hover:border-cyan-500/60 active:scale-[0.98]"
           >
             <Search size={16} />
-            <span>Verify Hash</span>
+            <span>VERIFY_HASH</span>
           </Link>
         </div>
       </div>
@@ -321,23 +321,23 @@ const Dashboard = () => {
         <motion.div
           whileHover={{ y: -4 }}
           transition={{ duration: 0.2 }}
-          className="glassmorphism rounded-2xl p-6 border border-slate-700/50 relative overflow-hidden group shadow-xl"
+          className="glass-card rounded-2xl p-6 border border-cyan-500/25 relative overflow-hidden group shadow-[0_0_20px_rgba(0,240,255,0.08)] hover:border-cyan-400/50"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-primary-500/20 transition-all"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-cyan-500/20 transition-all"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Evidence</p>
-              <h3 className="text-3xl font-bold text-slate-100 mt-2 font-mono">1,248</h3>
+              <p className="text-slate-400 text-xs font-mono font-semibold uppercase tracking-wider">TOTAL_EVIDENCE</p>
+              <h3 className="text-3xl font-bold text-white mt-2 font-mono drop-shadow-[0_0_8px_rgba(0,240,255,0.4)]">1,248</h3>
             </div>
-            <div className="p-3.5 rounded-xl bg-primary-500/20 text-primary-400 border border-primary-500/30">
+            <div className="p-3.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
               <Shield size={24} />
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs relative z-10 pt-2 border-t border-slate-800/80">
-            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+          <div className="flex items-center justify-between text-xs font-mono relative z-10 pt-2 border-t border-slate-800/80">
+            <span className="text-cyan-400 font-semibold flex items-center gap-1">
               <TrendingUp size={14} /> +14.2%
             </span>
-            <span className="text-slate-500">Across 24 Active Cases</span>
+            <span className="text-slate-500">24 Active Cases</span>
           </div>
         </motion.div>
 
@@ -345,21 +345,21 @@ const Dashboard = () => {
         <motion.div
           whileHover={{ y: -4 }}
           transition={{ duration: 0.2 }}
-          className="glassmorphism rounded-2xl p-6 border border-slate-700/50 relative overflow-hidden group shadow-xl"
+          className="glass-card rounded-2xl p-6 border border-blue-500/25 relative overflow-hidden group shadow-[0_0_20px_rgba(56,189,248,0.08)] hover:border-blue-400/50"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-emerald-500/20 transition-all"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-blue-500/20 transition-all"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Verified On-Chain</p>
-              <h3 className="text-3xl font-bold text-emerald-400 mt-2 font-mono">1,092</h3>
+              <p className="text-slate-400 text-xs font-mono font-semibold uppercase tracking-wider">VERIFIED_ON_CHAIN</p>
+              <h3 className="text-3xl font-bold text-sky-400 mt-2 font-mono drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">1,092</h3>
             </div>
-            <div className="p-3.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <div className="p-3.5 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/30">
               <FileCheck size={24} />
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs relative z-10 pt-2 border-t border-slate-800/80">
-            <span className="text-emerald-400 font-semibold">87.5% Integrity Rate</span>
-            <span className="text-slate-500">Polygon Anchored</span>
+          <div className="flex items-center justify-between text-xs font-mono relative z-10 pt-2 border-t border-slate-800/80">
+            <span className="text-sky-400 font-semibold">87.5% Integrity</span>
+            <span className="text-slate-500">EVM Anchored</span>
           </div>
         </motion.div>
 
@@ -367,21 +367,21 @@ const Dashboard = () => {
         <motion.div
           whileHover={{ y: -4 }}
           transition={{ duration: 0.2 }}
-          className="glassmorphism rounded-2xl p-6 border border-slate-700/50 relative overflow-hidden group shadow-xl"
+          className="glass-card rounded-2xl p-6 border border-amber-500/25 relative overflow-hidden group shadow-xl hover:border-amber-400/50"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-amber-500/20 transition-all"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Verification</p>
-              <h3 className="text-3xl font-bold text-amber-400 mt-2 font-mono">134</h3>
+              <p className="text-slate-400 text-xs font-mono font-semibold uppercase tracking-wider">PENDING_VERIFY</p>
+              <h3 className="text-3xl font-bold text-amber-400 mt-2 font-mono drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">134</h3>
             </div>
-            <div className="p-3.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <div className="p-3.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
               <Clock size={24} />
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs relative z-10 pt-2 border-t border-slate-800/80">
+          <div className="flex items-center justify-between text-xs font-mono relative z-10 pt-2 border-t border-slate-800/80">
             <span className="text-amber-400 font-semibold">Queue Processing</span>
-            <Link to="/verify" className="text-primary-400 hover:text-primary-300 font-medium">Verify Now →</Link>
+            <Link to="/verify" className="text-cyan-400 hover:underline font-medium">Verify Now →</Link>
           </div>
         </motion.div>
 
@@ -389,20 +389,20 @@ const Dashboard = () => {
         <motion.div
           whileHover={{ y: -4 }}
           transition={{ duration: 0.2 }}
-          className="glassmorphism rounded-2xl p-6 border border-red-500/30 relative overflow-hidden group shadow-xl"
+          className="glass-card rounded-2xl p-6 border border-red-500/30 relative overflow-hidden group shadow-xl hover:border-red-500/60"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/15 rounded-full blur-3xl -mr-12 -mt-12 group-hover:bg-red-500/25 transition-all"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Tampered / Flagged</p>
-              <h3 className="text-3xl font-bold text-red-400 mt-2 font-mono">22</h3>
+              <p className="text-slate-400 text-xs font-mono font-semibold uppercase tracking-wider">FLAGGED_ANOMALIES</p>
+              <h3 className="text-3xl font-bold text-red-400 mt-2 font-mono drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]">22</h3>
             </div>
-            <div className="p-3.5 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
+            <div className="p-3.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/30 animate-pulse">
               <AlertTriangle size={24} />
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs relative z-10 pt-2 border-t border-slate-800/80">
-            <span className="text-red-400 font-semibold">Requires Forensic Audit</span>
+          <div className="flex items-center justify-between text-xs font-mono relative z-10 pt-2 border-t border-slate-800/80">
+            <span className="text-red-400 font-semibold">Forensic Audit</span>
             <span className="text-slate-500">1.76% Flag Rate</span>
           </div>
         </motion.div>

@@ -19,9 +19,11 @@ import {
   User,
   FolderGit2,
   Database,
-  Globe
+  Globe,
+  Cpu
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
+import { RadarSpinner, TerminalLoader } from '../components/CyberLoader';
 import api from '../services/api';
 
 const VerifyEvidence = () => {
@@ -51,9 +53,9 @@ const VerifyEvidence = () => {
       const computedHash = await calculateSHA256(file);
       setFileHash(computedHash);
       setHashInput(computedHash);
-      toast.success(`Computed SHA-256 for ${file.name}`);
+      showCyberToast.success(`SHA-256 Hash Generated: ${file.name}`, 'HASH_COMPUTED');
     } catch (err) {
-      toast.error('Failed to compute file SHA-256 hash');
+      showCyberToast.error('Failed to compute file SHA-256 hash', 'HASH_ERROR');
     }
   };
 
