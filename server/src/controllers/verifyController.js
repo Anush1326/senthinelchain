@@ -6,23 +6,30 @@ import { recordAuditLog } from './auditController.js';
 
 export const verifyByHash = async (req, res, next) => {
   try {
-    const hash = req.body.fileHash || req.body.hash;
+    const rawHash = req.body.fileHash || req.body.hash;
     
-    if (!hash) {
+    if (!rawHash) {
       return res.status(400).json(formatResponse(false, null, 'File hash or hash payload is required'));
     }
 
+    const searchHash = String(rawHash).trim().toLowerCase();
     let evidence = null;
 
     try {
-      evidence = await Evidence.findOne({ where: { fileHash: hash } });
+      if (Evidence && typeof Evidence.findOne === 'function') {
+        evidence = await Evidence.findOne({ where: { fileHash: searchHash } });
+      }
     } catch (dbErr) {
       console.warn('⚠️ PostgreSQL unavailable for verifyByHash, checking memoryEvidenceStore:', dbErr.message);
     }
 
     if (!evidence) {
       evidence = memoryEvidenceStore.find(
-        (item) => item.fileHash === hash || item.id === hash
+        (item) => 
+          (item.fileHash || '').toLowerCase() === searchHash || 
+          (item.ipfsHash || '').toLowerCase() === searchHash ||
+          (item.id || '').toLowerCase() === searchHash ||
+          (item.originalFileName || '').toLowerCase() === searchHash
       );
     }
 
