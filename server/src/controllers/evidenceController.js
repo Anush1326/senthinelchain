@@ -852,26 +852,30 @@ End of Forensic Evidence Package • SentinelChain AI Security System
 };
 
 export const ATTACK_SCENARIOS_LIST = [
-  // 💥 DESTROYS (Permanent erasure of evidence data/metadata)
-  { id: 'exif_removal', name: 'Complete EXIF Metadata Stripping', description: 'Destroys camera serial number, creation timestamp, and GPS location headers.', actionType: 'DESTROYS', riskLevel: 'HIGH', category: 'Metadata Erasure' },
-  { id: 'watermark_erasure', name: 'Digital Seal & Watermark Erasure', description: 'Destroys authentic digital security seals and forensic watermark signatures.', actionType: 'DESTROYS', riskLevel: 'CRITICAL', category: 'Security Erasure' },
-  { id: 'noise_injection', name: 'High-Frequency Noise Injection', description: 'Destroys fine forensic pixel details by injecting heavy Gaussian noise variance.', actionType: 'DESTROYS', riskLevel: 'HIGH', category: 'Pixel Destruction' },
-  { id: 'file_truncation', name: 'Evidence Payload Byte Truncation', description: 'Destroys evidence tail bytes to cause file corruption and hash divergence.', actionType: 'DESTROYS', riskLevel: 'CRITICAL', category: 'Payload Destruction' },
-
-  // ✏️ ALTERS (Modifying or fabricating evidence content)
-  { id: 'one_pixel_mod', name: '1-Pixel RGB Alteration Attack', description: 'Alters a single pixel color value to force bitwise SHA-256 hash divergence.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Pixel Editing' },
-  { id: 'pdf_text_mod', name: 'Document Text & Amount Alteration', description: 'Alters monetary amounts, dates, or names in document evidence text.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Document Forgery' },
-  { id: 'fake_metadata', name: 'Synthetic EXIF Header Injection', description: 'Alters creation timestamp clock (+30m offset) and injects fake software tags.', actionType: 'ALTERS', riskLevel: 'HIGH', category: 'Header Manipulation' },
-  { id: 'deepfake', name: 'Deepfake Synthetic Face Swap', description: 'Alters facial features of individuals in evidence using AI synthetic generation.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'AI Synthetic' },
-  { id: 'copy_move', name: 'Copy-Move Region Cloning Attack', description: 'Alters evidence by duplicating/cloning keypoint regions within the frame.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Cloning Forgery' },
-  { id: 'splicing', name: 'Image Splicing & Overlay Attack', description: 'Alters original frame by splicing timestamp banners or external elements.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Splicing Forgery' },
-  { id: 'brightness_contrast', name: 'Brightness & Exposure Shift (+25%)', description: 'Alters gamma exposure and contrast curves to distort visual lighting context.', actionType: 'ALTERS', riskLevel: 'MEDIUM', category: 'Filter Shift' },
-
-  // 🙈 HIDES (Obscuring, masking, or concealing evidence details)
-  { id: 'object_removal', name: 'Inpainting Object / Person Removal', description: 'Hides suspects, weapons, or security badges from CCTV using generative inpainting.', actionType: 'HIDES', riskLevel: 'CRITICAL', category: 'Content Masking' },
-  { id: 'face_blur', name: 'Facial Obfuscation & Gaussian Blur', description: 'Hides suspect facial features behind blur patches to prevent identity verification.', actionType: 'HIDES', riskLevel: 'HIGH', category: 'Identity Obfuscation' },
-  { id: 'cropping', name: 'Border Pixel Cropping (-5%)', description: 'Hides peripheral evidence context by cropping outer image boundaries.', actionType: 'HIDES', riskLevel: 'HIGH', category: 'Spatial Masking' },
-  { id: 'badge_blackout', name: 'Credential & License Plate Blackout', description: 'Hides vehicle license plates, ID badges, or officer credentials with black masks.', actionType: 'HIDES', riskLevel: 'CRITICAL', category: 'Credential Masking' }
+  {
+    id: 'exif_removal',
+    name: 'Complete EXIF Metadata & Data Destruction',
+    actionType: 'DESTROYS',
+    category: 'Evidence Destruction',
+    description: 'Permanently erases camera serial numbers, GPS headers, creation timestamps, and digital security signatures.',
+    riskLevel: 'HIGH'
+  },
+  {
+    id: 'one_pixel_mod',
+    name: '1-Pixel RGB & Document Content Alteration',
+    actionType: 'ALTERS',
+    category: 'Content Alteration',
+    description: 'Modifies pixel color values and document text to alter evidence meaning while forcing SHA-256 hash divergence.',
+    riskLevel: 'CRITICAL'
+  },
+  {
+    id: 'object_removal',
+    name: 'Inpainting Object & Facial Blur Concealment',
+    actionType: 'HIDES',
+    category: 'Evidence Concealment',
+    description: 'Hides physical objects, security badges, or suspect faces using generative inpainting and Gaussian blur.',
+    riskLevel: 'CRITICAL'
+  }
 ];
 
 export const getAttackScenarios = async (req, res, next) => {

@@ -531,21 +531,21 @@ const VerifyEvidence = () => {
             status: 'flagged',
             riskScore: resultData.riskScore || 94,
             riskLevel: 'CRITICAL',
-            tamperingDetails: {
+            tamperingDetails: resultData.tamperingDetails || {
               isTampered: true,
               tamperingSummary: resultData.reason || 'CRITICAL_HASH_MISMATCH: The computed file hash does not match any registered block hash on the Polygon Amoy blockchain.',
-              anchoredHash: resultData.anchoredHash || 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
-              scannedHash: resultData.hash || 'f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8',
+              anchoredHash: resultData.anchoredHash || 'Unregistered / No Record',
+              scannedHash: resultData.hash || resultData.scannedHash || 'Unknown Hash',
               changedFields: [
                 {
                   field: 'SHA-256 Hash Checksum',
-                  original: 'a1b2c3d4e5f6a1b2...',
-                  current: (resultData.hash || '').slice(0, 16) + '...',
+                  original: resultData.anchoredHash ? (resultData.anchoredHash.length > 20 ? resultData.anchoredHash.slice(0, 16) + '...' : resultData.anchoredHash) : 'Unregistered / No Record',
+                  current: (resultData.hash || resultData.scannedHash || '').slice(0, 16) + '...',
                   discrepancyStatus: 'CRITICAL_MISMATCH'
                 },
                 {
                   field: 'Content Integrity',
-                  original: 'Valid On-Chain Block Signature',
+                  original: resultData.anchoredHash && resultData.anchoredHash !== 'Unregistered / No Record' ? 'Valid On-Chain Block Signature' : 'Unregistered File',
                   current: 'Unanchored / Altered Content',
                   discrepancyStatus: 'BYTE_MUTATED'
                 }

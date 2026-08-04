@@ -36,31 +36,37 @@ import TamperingDiffCard from '../components/TamperingDiffCard';
 import api from '../services/api';
 
 const ATTACK_VECTORS = [
-  // 💥 DESTROYS (Permanent erasure of evidence data/metadata)
-  { id: 'exif_removal', label: 'Complete EXIF Metadata Stripping', actionType: 'DESTROYS', category: 'Metadata Erasure', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
-  { id: 'watermark_erasure', label: 'Digital Seal & Watermark Erasure', actionType: 'DESTROYS', category: 'Security Erasure', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
-  { id: 'noise_injection', label: 'High-Frequency Noise Injection', actionType: 'DESTROYS', category: 'Pixel Destruction', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
-  { id: 'file_truncation', label: 'Evidence Payload Byte Truncation', actionType: 'DESTROYS', category: 'Payload Destruction', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
-
-  // ✏️ ALTERS (Modifying or fabricating evidence content)
-  { id: 'one_pixel_mod', label: '1-Pixel RGB Alteration Attack', actionType: 'ALTERS', category: 'Pixel Editing', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'pdf_text_mod', label: 'Document Text & Amount Alteration', actionType: 'ALTERS', category: 'Document Forgery', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'fake_metadata', label: 'Synthetic EXIF Header Injection', actionType: 'ALTERS', category: 'Header Manipulation', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'deepfake', label: 'Deepfake Synthetic Face Swap', actionType: 'ALTERS', category: 'AI Synthetic', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'copy_move', label: 'Copy-Move Region Cloning Attack', actionType: 'ALTERS', category: 'Cloning Forgery', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'splicing', label: 'Image Splicing & Overlay Attack', actionType: 'ALTERS', category: 'Splicing Forgery', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-  { id: 'brightness_contrast', label: 'Brightness & Exposure Shift (+25%)', actionType: 'ALTERS', category: 'Filter Shift', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-
-  // 🙈 HIDES (Obscuring, masking, or concealing evidence details)
-  { id: 'object_removal', label: 'Inpainting Object / Person Removal', actionType: 'HIDES', category: 'Content Masking', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' },
-  { id: 'face_blur', label: 'Facial Obfuscation & Gaussian Blur', actionType: 'HIDES', category: 'Identity Obfuscation', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' },
-  { id: 'cropping', label: 'Border Pixel Cropping (-5%)', actionType: 'HIDES', category: 'Spatial Masking', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' },
-  { id: 'badge_blackout', label: 'Credential & License Plate Blackout', actionType: 'HIDES', category: 'Credential Masking', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' }
+  {
+    id: 'exif_removal',
+    label: 'Complete EXIF Metadata & Data Destruction',
+    actionType: 'DESTROYS',
+    category: 'Evidence Destruction',
+    description: 'Permanently erases camera serial numbers, GPS headers, creation timestamps, and digital security signatures.',
+    badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40'
+  },
+  {
+    id: 'one_pixel_mod',
+    label: '1-Pixel RGB & Document Content Alteration',
+    actionType: 'ALTERS',
+    category: 'Content Alteration',
+    description: 'Modifies pixel color values and document text to alter evidence meaning while forcing SHA-256 hash divergence.',
+    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+  },
+  {
+    id: 'object_removal',
+    label: 'Inpainting Object & Facial Blur Concealment',
+    actionType: 'HIDES',
+    category: 'Evidence Concealment',
+    description: 'Hides physical objects, security badges, or suspect faces using generative inpainting and Gaussian blur.',
+    badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+  }
 ];
 
 const AttackSimulator = () => {
   const [evidenceList, setEvidenceList] = useState([]);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
+  const [selectedVectorId, setSelectedVectorId] = useState('one_pixel_mod');
+  const [executing, setExecuting] = useState(false);
   const [actionFilter, setActionFilter] = useState('ALL'); // ALL | DESTROYS | ALTERS | HIDES
 
   const filteredVectors = ATTACK_VECTORS.filter(
@@ -78,6 +84,19 @@ const AttackSimulator = () => {
     fetchEvidences();
     fetchAttackHistory();
   }, []);
+
+  const fetchEvidences = async () => {
+    try {
+      const res = await api.get('/evidence');
+      const items = res.data?.data?.data || res.data?.data || [];
+      if (Array.isArray(items) && items.length > 0) {
+        setEvidenceList(items);
+        setSelectedEvidenceId(items[0].id);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch evidence list:', e);
+    }
+  };
 
   const fetchAttackHistory = async () => {
     setLoadingHistory(true);
