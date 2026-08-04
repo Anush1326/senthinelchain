@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Upload, ShieldCheck, BarChart2, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Upload, ShieldCheck, BarChart2, LogOut, Shield } from 'lucide-react';
 import Navbar from './Navbar';
 import useAuthStore from '../store/authStore';
 
@@ -21,6 +21,10 @@ const Layout = () => {
     { name: 'Verify', path: '/verify', icon: <ShieldCheck size={20} /> },
     { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
   ];
+
+  if (user?.role === 'admin') {
+    navItems.push({ name: 'Admin Panel', path: '/admin', icon: <Shield size={20} className="text-primary-400" /> });
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-sentinel-dark-900">

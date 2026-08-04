@@ -13,6 +13,7 @@ import evidenceRoutes from './routes/evidence.js';
 import verifyRoutes from './routes/verify.js';
 import analyticsRoutes from './routes/analytics.js';
 import usersRoutes from './routes/users.js';
+import auditRoutes from './routes/audit.js';
 
 dotenv.config();
 
@@ -40,6 +41,8 @@ app.use('/api/evidence', evidenceRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/audit-logs', auditRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

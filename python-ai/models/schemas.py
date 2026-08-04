@@ -16,6 +16,8 @@ class AnalysisResponse(BaseModel):
     detected_objects: List[str]
     risk_assessment: str
     recommendations: List[str]
+    tampered: Optional[bool] = False
+    explanation: Optional[str] = ""
 
 class ClassificationRequest(BaseModel):
     content: str
@@ -35,8 +37,11 @@ class IntegrityResponse(BaseModel):
 
 class TamperingDetectionResponse(BaseModel):
     tampered: bool
-    signs: List[str]
+    confidence_score: float
     risk_level: str
+    explanation: str
+    signs: Optional[List[str]] = []
+    ela_metrics: Optional[Dict[str, Any]] = None
 
 class MetadataResponse(BaseModel):
     file_type: str

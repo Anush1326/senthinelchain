@@ -2,6 +2,7 @@ import { Evidence } from '../models/index.js';
 import { formatResponse } from '../utils/helpers.js';
 import { verifyEvidenceOnChain } from '../utils/blockchain.js';
 import { memoryEvidenceStore } from './evidenceController.js';
+import { recordAuditLog } from './auditController.js';
 
 export const verifyByHash = async (req, res, next) => {
   try {
@@ -30,6 +31,17 @@ export const verifyByHash = async (req, res, next) => {
         formatResponse(true, { verified: false, exists: false }, 'No matching evidence found for this hash')
       );
     }
+
+    recordAuditLog({
+      action: 'EVIDENCE_VERIFIED',
+      entityType: 'Evidence',
+      entityId: evidence.id,
+      userId: req.user?.id,
+      userEmail: req.user?.email || 'investigator@sentinelchain.ai',
+      userName: req.user?.name || 'Agent Priya Sharma',
+      details: { fileHash: hash, status: 'VERIFIED', title: evidence.title },
+      ipAddress: req.ip || '127.0.0.1'
+    }).catch(() => {});
 
     res.json(
       formatResponse(

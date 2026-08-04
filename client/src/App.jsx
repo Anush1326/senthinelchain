@@ -9,6 +9,7 @@ import UploadEvidence from './pages/UploadEvidence';
 import EvidenceDetail from './pages/EvidenceDetail';
 import VerifyEvidence from './pages/VerifyEvidence';
 import Analytics from './pages/Analytics';
+import AdminPanel from './pages/AdminPanel';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -45,6 +46,11 @@ function App() {
             {/* Analytics restricted to Admin, Investigator, Analyst */}
             <Route element={<ProtectedRoute allowedRoles={['admin', 'investigator', 'analyst']} />}>
               <Route path="/analytics" element={<Analytics />} />
+            </Route>
+
+            {/* Admin Panel restricted to Admin */}
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<AdminPanel />} />
             </Route>
           </Route>
         </Route>

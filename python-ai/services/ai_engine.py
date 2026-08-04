@@ -107,8 +107,10 @@ class AIEngine:
         )
 
     async def extract_metadata(self, file_path: str) -> MetadataResponse:
+        ext = os.path.splitext(file_path)[1].lower()
+        file_mime = "application/pdf" if ext == ".pdf" else ("application/vnd.openxmlformats-officedocument.wordprocessingml.document" if ext == ".docx" else ("application/msword" if ext == ".doc" else "image/jpeg"))
         return MetadataResponse(
-            file_type="application/pdf" if file_path.endswith(".pdf") else "image/jpeg",
+            file_type=file_mime,
             size=random.randint(1024, 10485760),
             creation_date="2026-08-03T12:00:00Z",
             exif_data={"Software": "SentinelChain AI", "DateTime": "2026:08:03 12:00:00"}

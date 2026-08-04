@@ -27,7 +27,7 @@ import api from '../services/api';
 const ALLOWED_EXTENSIONS = [
   'png', 'jpg', 'jpeg', 'webp', 'gif',
   'mp4', 'avi', 'mov', 'mkv',
-  'pdf',
+  'pdf', 'doc', 'docx',
   'eml', 'msg',
   'pcap', 'pcapng', 'cap',
   'zip', 'tar', 'gz', '7z', 'rar',
@@ -83,7 +83,7 @@ const UploadEvidence = () => {
 
     const ext = file.name.split('.').pop().toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      toast.error(`Invalid file type .${ext}! Allowed: Images, Videos, PDF, Email (.eml/.msg), PCAPs, ZIP archives.`);
+      toast.error(`Invalid file type .${ext}! Allowed: Images, Videos, PDF, Word (.doc/.docx), Email (.eml/.msg), PCAPs, ZIP archives.`);
       return;
     }
 
@@ -379,7 +379,7 @@ const UploadEvidence = () => {
                 <div className="flex flex-wrap gap-1.5 text-[10px]">
                   <span className="px-2 py-0.5 bg-blue-500/15 text-blue-300 rounded border border-blue-500/30">Images (.png, .jpg, .webp)</span>
                   <span className="px-2 py-0.5 bg-purple-500/15 text-purple-300 rounded border border-purple-500/30">Videos (.mp4, .avi, .mkv)</span>
-                  <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-300 rounded border border-cyan-500/30">PDF Documents</span>
+                  <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-300 rounded border border-cyan-500/30">PDF & Word (.doc, .docx)</span>
                   <span className="px-2 py-0.5 bg-amber-500/15 text-amber-300 rounded border border-amber-500/30">Emails (.eml, .msg)</span>
                   <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-300 rounded border border-emerald-500/30">PCAP Capture</span>
                   <span className="px-2 py-0.5 bg-rose-500/15 text-rose-300 rounded border border-rose-500/30">Archives (.zip, .tar)</span>
