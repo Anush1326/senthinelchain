@@ -8,12 +8,18 @@ import {
   deleteEvidence,
   verifyEvidence,
   getChainOfCustody,
-  downloadEvidence
+  downloadEvidence,
+  getAttackScenarios,
+  simulateAttack
 } from '../controllers/evidenceController.js';
 import { protect, optionalProtect, authorize } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
+
+// Attack Simulation Endpoints
+router.get('/attack-scenarios', getAttackScenarios);
+router.post('/simulate-attack', optionalProtect, simulateAttack);
 
 // Dedicated SHA-256 Hashing Endpoint
 router.post('/hash', upload.single('file'), generateHashAndSave);

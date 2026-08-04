@@ -8,6 +8,7 @@ import EvidenceList from './pages/EvidenceList';
 import UploadEvidence from './pages/UploadEvidence';
 import EvidenceDetail from './pages/EvidenceDetail';
 import IpfsVault from './pages/IpfsVault';
+import AttackSimulator from './pages/AttackSimulator';
 import VerifyEvidence from './pages/VerifyEvidence';
 import Analytics from './pages/Analytics';
 import AdminPanel from './pages/AdminPanel';
@@ -70,6 +71,7 @@ function App() {
             <Route path="/evidence" element={<EvidenceList />} />
             <Route path="/evidence/:id" element={<EvidenceDetail />} />
             <Route path="/ipfs" element={<IpfsVault />} />
+            <Route path="/simulator" element={<AttackSimulator />} />
             <Route path="/verify" element={<VerifyEvidence />} />
 
             {/* Role-Based Protected Routes */}

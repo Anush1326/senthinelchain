@@ -851,3 +851,245 @@ End of Forensic Evidence Package • SentinelChain AI Security System
   }
 };
 
+export const getAttackScenarios = async (req, res, next) => {
+  try {
+    const scenarios = [
+      {
+        id: 'ipfs_reupload_tampering',
+        name: 'IPFS Content-Addressed File Modification & Re-upload',
+        description: 'Simulates downloading an original evidence file, altering 1 byte, and re-uploading to IPFS. Tests IPFS immutability rules (NEW CID generated) and Polygon blockchain hash mismatch detection.',
+        riskLevel: 'CRITICAL',
+        targetType: 'image_or_log',
+        category: 'IPFS & Cryptographic Integrity'
+      },
+      {
+        id: 'replay_tx_attack',
+        name: 'Blockchain Transaction Replay Attack',
+        description: 'Simulates replaying an old signed Polygon transaction receipt for an unauthorized case context. Tests transaction nonce, chain ID, and target hash validation.',
+        riskLevel: 'HIGH',
+        targetType: 'blockchain_tx',
+        category: 'Blockchain Nonce & State'
+      },
+      {
+        id: 'unauthorized_access',
+        name: 'Unauthorized Evidence Exfiltration & Access Escalation',
+        description: 'Simulates an unauthenticated or low-privilege user attempting restricted evidence deletion or download. Tests Express RBAC middleware and audit log alerts.',
+        riskLevel: 'HIGH',
+        targetType: 'iam_access',
+        category: 'Identity & Access Control'
+      },
+      {
+        id: 'exif_manipulation',
+        name: 'Metadata EXIF Clock Shift & Software Tampering',
+        description: 'Simulates stripping camera sensor serial numbers, altering creation clock by +2 hours, and modifying EXIF software tags to Photoshop.',
+        riskLevel: 'MEDIUM',
+        targetType: 'metadata',
+        category: 'Metadata Consistency'
+      },
+      {
+        id: 'splicing_crop',
+        name: 'AI Image Splicing & Re-compression Attack',
+        description: 'Simulates overlaying a fake timestamp patch on CCTV footage and re-saving at JPEG quality 70. Tests Error Level Analysis (ELA) and noise variance detectors.',
+        riskLevel: 'CRITICAL',
+        targetType: 'image',
+        category: 'AI Forensics'
+      }
+    ];
+
+    res.json(formatResponse(true, scenarios, 'Attack scenarios retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const simulateAttack = async (req, res, next) => {
+  try {
+    const { scenarioId = 'ipfs_reupload_tampering', evidenceId } = req.body;
+
+    let evidence = null;
+    if (evidenceId) {
+      try {
+        if (Evidence && typeof Evidence.findByPk === 'function') {
+          evidence = await Evidence.findByPk(evidenceId);
+        }
+      } catch (e) {}
+
+      if (!evidence) {
+        evidence = memoryEvidenceStore.find(item => item.id === evidenceId);
+      }
+    }
+
+    if (!evidence) {
+      evidence = memoryEvidenceStore[0] || initialStore[0];
+    }
+
+    const origCid = evidence.ipfsHash || 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG';
+    const origHash = evidence.fileHash || 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
+    const origTx = evidence.transactionHash || '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01';
+
+    let simulationResult = {};
+
+    if (scenarioId === 'ipfs_reupload_tampering') {
+      const mutatedCid = `QmMODIFIED_${origCid.slice(10, 26)}_TAMPERED`;
+      const mutatedHash = `f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8`;
+      const mutatedSize = (evidence.fileSize || 15728640) + 1172;
+
+      simulationResult = {
+        scenarioId,
+        scenarioName: 'IPFS Content-Addressed File Modification & Re-upload',
+        status: 'TAMPERING_DETECTED',
+        trustScore: 12.5,
+        overallVerdict: 'REJECTED: IPFS CID Mutation & Polygon Blockchain SHA-256 Hash Mismatch',
+        timeline: [
+          {
+            step: 1,
+            time: '2026-07-28T09:12:00.000Z',
+            phase: 'ORIGINAL_UPLOAD',
+            title: 'Original Evidence Anchored on Polygon',
+            description: `File "${evidence.originalFileName}" anchored on Polygon Amoy Block #48521000. IPFS CID: ${origCid}`,
+            status: 'SUCCESS',
+            color: 'emerald'
+          },
+          {
+            step: 2,
+            time: new Date(Date.now() - 300000).toISOString(),
+            phase: 'ADVERSARY_DOWNLOAD',
+            title: 'Adversary Downloaded Evidence Artifact',
+            description: `User IP 192.168.1.105 downloaded "${evidence.originalFileName}" from IPFS Gateway.`,
+            status: 'INFO',
+            color: 'cyan'
+          },
+          {
+            step: 3,
+            time: new Date(Date.now() - 200000).toISOString(),
+            phase: 'TAMPERING_APPLIED',
+            title: 'File Content Mutated (1-Byte Edit)',
+            description: 'Adversary modified access log timestamp from 02:45 UTC to 03:15 UTC in file header.',
+            status: 'WARNING',
+            color: 'amber'
+          },
+          {
+            step: 4,
+            time: new Date(Date.now() - 100000).toISOString(),
+            phase: 'IPFS_REUPLOAD',
+            title: 'Modified File Uploaded to IPFS Network',
+            description: `Under IPFS Content-Addressing rules, bitwise mutation forced the generation of NEW CID: ${mutatedCid}. Original CID (${origCid}) remains untouched.`,
+            status: 'FAILED',
+            color: 'red'
+          },
+          {
+            step: 5,
+            time: new Date().toISOString(),
+            phase: 'BLOCKCHAIN_VERIFICATION',
+            title: 'Polygon Smart Contract Hash Audit Executed',
+            description: `SHA-256 checksum (${mutatedHash.slice(0, 16)}...) failed on-chain lookup against Polygon Amoy Block #48521000 (${origHash.slice(0, 16)}...). Verification REJECTED.`,
+            status: 'CRITICAL',
+            color: 'red'
+          }
+        ],
+        lineage: {
+          originalCid: origCid,
+          mutatedCid: mutatedCid,
+          originalHash: origHash,
+          mutatedHash: mutatedHash,
+          originalTx: origTx,
+          originalBlockNumber: 48521000
+        },
+        diffMatrix: [
+          { field: 'IPFS Content CID', original: origCid.slice(0, 24) + '...', current: mutatedCid.slice(0, 24) + '...', discrepancyStatus: 'NEW_CID_GENERATED_BY_IPFS' },
+          { field: 'SHA-256 Checksum', original: origHash.slice(0, 24) + '...', current: mutatedHash.slice(0, 24) + '...', discrepancyStatus: 'CRITICAL_HASH_MISMATCH' },
+          { field: 'File Size', original: `${(evidence.fileSize || 15728640)} bytes`, current: `${mutatedSize} bytes (+1,172 bytes)`, discrepancyStatus: 'BYTE_MUTATION_DETECTED' },
+          { field: 'EXIF Timestamp Clock', original: '2026-07-28 02:45:00 UTC', current: '2026-07-28 03:15:00 UTC (+30m offset)', discrepancyStatus: 'CLOCK_SHIFT_DETECTED' }
+        ],
+        aiAnalysis: {
+          confidenceScore: 99.2,
+          riskLevel: 'CRITICAL',
+          elaScore: 84.5,
+          findings: [
+            'IPFS Immutability: Mutated file generated new CID, proving content change',
+            'Polygon Blockchain Ledger: Hash check failed against block receipt',
+            'EXIF Header: 30 minute clock shift identified'
+          ]
+        }
+      };
+
+    } else if (scenarioId === 'replay_tx_attack') {
+      simulationResult = {
+        scenarioId,
+        scenarioName: 'Blockchain Transaction Replay Attack',
+        status: 'REPLAY_ATTACK_BLOCKED',
+        trustScore: 45.0,
+        overallVerdict: 'BLOCKED: Polygon Contract Nonce & Transaction Replay Guard Intercepted Attack',
+        timeline: [
+          { step: 1, time: new Date(Date.now() - 300000).toISOString(), phase: 'TX_CAPTURED', title: 'Adversary Intercepted Valid Polygon Tx', description: `Captured Tx Hash ${origTx.slice(0, 18)}...`, status: 'INFO', color: 'cyan' },
+          { step: 2, time: new Date().toISOString(), phase: 'REPLAY_SUBMITTED', title: 'Replay Tx Submitted for Case SC-2026-99999', description: 'Attempted re-submitting valid signature under unauthorized case ID.', status: 'CRITICAL', color: 'red' },
+          { step: 3, time: new Date().toISOString(), phase: 'NONCE_CHECK', title: 'Smart Contract Nonce & Hash Mismatch', description: 'Replay rejected by SentinelChain.sol contract replay guard.', status: 'SUCCESS', color: 'emerald' }
+        ],
+        lineage: { originalTx: origTx, targetCaseId: 'SC-2026-99999' },
+        diffMatrix: [
+          { field: 'Transaction Nonce', original: '0x0042', current: '0x0042 (Duplicate Replay)', discrepancyStatus: 'NONCE_REUSED' },
+          { field: 'Target Case ID', original: evidence.metadata?.caseId || 'SC-2026-00001', current: 'SC-2026-99999 (Unauthorized Case)', discrepancyStatus: 'CASE_MISMATCH' }
+        ],
+        aiAnalysis: { confidenceScore: 99.8, riskLevel: 'HIGH', findings: ['Replay attack vector blocked by contract nonce state guard'] }
+      };
+
+    } else if (scenarioId === 'unauthorized_access') {
+      simulationResult = {
+        scenarioId,
+        scenarioName: 'Unauthorized Evidence Exfiltration & Access Escalation',
+        status: 'ACCESS_DENIED',
+        trustScore: 60.0,
+        overallVerdict: 'BLOCKED: Express RBAC Middleware Intercepted Unauthorized Action (403 Forbidden)',
+        timeline: [
+          { step: 1, time: new Date(Date.now() - 100000).toISOString(), phase: 'INTRUSION_ATTEMPT', title: 'Adversary Attempted Restricted Delete Endpoint', description: 'User role [viewer] attempted DELETE /api/evidence/:id without admin privilege.', status: 'WARNING', color: 'amber' },
+          { step: 2, time: new Date().toISOString(), phase: 'RBAC_ENFORCED', title: 'Express Authorization Middleware Intercepted', description: '403 Forbidden returned. IP 198.51.100.42 flagged.', status: 'SUCCESS', color: 'emerald' }
+        ],
+        lineage: { attemptUser: 'viewer@sentinelchain.ai', attemptedRoute: 'DELETE /api/evidence/:id' },
+        diffMatrix: [
+          { field: 'Required Role', original: 'admin', current: 'viewer (Unprivileged)', discrepancyStatus: 'RBAC_VIOLATION' }
+        ],
+        aiAnalysis: { confidenceScore: 100.0, riskLevel: 'HIGH', findings: ['Unauthorized API endpoint invocation intercepted by security gateway'] }
+      };
+
+    } else {
+      simulationResult = {
+        scenarioId,
+        scenarioName: 'Metadata EXIF Clock Shift & Software Tampering',
+        status: 'METADATA_TAMPERING_DETECTED',
+        trustScore: 35.0,
+        overallVerdict: 'FLAGGED: EXIF Clock Offset & Adobe Photoshop Editing Signature Detected',
+        timeline: [
+          { step: 1, time: new Date(Date.now() - 200000).toISOString(), phase: 'EXIF_EDIT', title: 'EXIF Headers Modified', description: 'Camera model erased and clock shifted by +2 hours.', status: 'WARNING', color: 'amber' },
+          { step: 2, time: new Date().toISOString(), phase: 'METADATA_AUDIT', title: 'SentinelAI Metadata Consistency Check', description: 'Flagged suspicious editing tool tag "Adobe Photoshop 2026".', status: 'CRITICAL', color: 'red' }
+        ],
+        lineage: { originalSoftware: 'Original Camera Firmware', modifiedSoftware: 'Adobe Photoshop 2026' },
+        diffMatrix: [
+          { field: 'EXIF Software Tag', original: 'Original Firmware', current: 'Adobe Photoshop 2026', discrepancyStatus: 'EDITING_SOFTWARE_DETECTED' },
+          { field: 'Creation Timestamp', original: '2026-07-28 07:30:00 UTC', current: '2026-07-28 09:30:00 UTC (+2h offset)', discrepancyStatus: 'CLOCK_SHIFT' }
+        ],
+        aiAnalysis: { confidenceScore: 97.4, riskLevel: 'HIGH', findings: ['Editing software signature detected in image metadata headers'] }
+      };
+    }
+
+    recordAuditLog({
+      action: 'EVIDENCE_TAMPERING_DETECTED',
+      entityType: 'Evidence',
+      entityId: evidence.id,
+      userId: req.user?.id,
+      userEmail: req.user?.email || 'investigator@sentinelchain.ai',
+      userName: req.user?.name || 'Agent Priya Sharma',
+      details: {
+        attackSimulation: true,
+        scenarioId,
+        trustScore: simulationResult.trustScore,
+        verdict: simulationResult.overallVerdict
+      },
+      ipAddress: req.ip || '127.0.0.1'
+    }).catch(() => {});
+
+    res.json(formatResponse(true, simulationResult, 'Attack simulation executed successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+

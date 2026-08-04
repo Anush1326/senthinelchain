@@ -16,7 +16,8 @@ import {
   Activity,
   User,
   X,
-  Globe
+  Globe,
+  Zap
 } from 'lucide-react';
 import Navbar from './Navbar';
 import useAuthStore from '../store/authStore';
@@ -39,6 +40,7 @@ const Layout = () => {
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Evidence Vault', path: '/evidence', icon: <FileText size={20} /> },
     { name: 'IPFS Storage', path: '/ipfs', icon: <Globe size={20} /> },
+    { name: 'Attack Simulator', path: '/simulator', icon: <Zap size={20} className="text-amber-400" /> },
     { name: 'Upload Chain', path: '/evidence/upload', icon: <Upload size={20} /> },
     { name: 'Verify Hash', path: '/verify', icon: <ShieldCheck size={20} /> },
     { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },

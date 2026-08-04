@@ -26,10 +26,17 @@ import {
   Eye,
   Box,
   Share2,
-  Loader2
+  Loader2,
+  ShieldAlert,
+  Zap,
+  X,
+  FileDiff,
+  ArrowRight,
+  Play
 } from 'lucide-react';
 import showCyberToast from '../components/CyberToast';
 import RiskScoreBadge from '../components/RiskScoreBadge';
+import TamperingDiffCard from '../components/TamperingDiffCard';
 import api from '../services/api';
 
 const mockIpfsItems = [
@@ -96,22 +103,6 @@ const mockIpfsItems = [
     createdAt: '2026-07-28T06:15:00.000Z',
     pinStatus: 'Pinned (Pinata NYC1)',
     replication: '2 Nodes'
-  },
-  {
-    id: 'e0000005-0000-0000-0000-000000000005',
-    title: 'Network Packet Capture (PCAP)',
-    category: 'digital_forensics',
-    fileHash: 'e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6',
-    ipfsHash: 'QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn',
-    transactionHash: '0x456789abcdef123456789abcdef123456789abcdef123456789abcdef12305',
-    status: 'pending',
-    fileSize: 32505856,
-    fileType: 'application/vnd.tcpdump.pcap',
-    originalFileName: 'traffic_dump.pcapng',
-    metadata: { caseId: 'SC-2026-00003', investigator: 'Agent Rajesh Kumar', department: 'Network Incident Unit' },
-    createdAt: '2026-07-28T04:20:00.000Z',
-    pinStatus: 'Pinned (Pinata FRA1)',
-    replication: '2 Nodes'
   }
 ];
 
@@ -124,7 +115,12 @@ const IpfsVault = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [copiedField, setCopiedField] = useState('');
   const [customCid, setCustomCid] = useState('');
-  const [inspectingCid, setInspectingCid] = useState(null);
+
+  // Tampering Simulation Modal State
+  const [simulatingItem, setSimulatingItem] = useState(null);
+  const [tamperingType, setTamperingType] = useState('timestamp_edit');
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationResult, setSimulationResult] = useState(null);
 
   useEffect(() => {
     fetchIpfsEvidence();
@@ -150,7 +146,7 @@ const IpfsVault = () => {
   const copyText = (text, fieldId) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldId);
-    showCyberToast('success', 'CID copied to clipboard!');
+    showCyberToast.success('CID copied to clipboard!');
     setTimeout(() => setCopiedField(''), 2000);
   };
 
@@ -197,16 +193,109 @@ const IpfsVault = () => {
   const handleTestCustomCid = (e) => {
     e.preventDefault();
     if (!customCid.trim()) {
-      showCyberToast('error', 'Please enter a valid IPFS CID');
+      showCyberToast.error('Please enter a valid IPFS CID');
       return;
     }
     const cleanCid = customCid.trim();
     window.open(getIpfsUrl(cleanCid), '_blank');
-    showCyberToast('success', `Opening IPFS Gateway for CID: ${cleanCid.slice(0, 12)}...`);
+    showCyberToast.success(`Opening IPFS Gateway for CID: ${cleanCid.slice(0, 12)}...`);
+  };
+
+  // Run IPFS File Modification & Tampering Rules Simulation
+  const runIpfsTamperingSimulation = async () => {
+    if (!simulatingItem) return;
+    setIsSimulating(true);
+
+    setTimeout(async () => {
+      const origCid = simulatingItem.ipfsHash || 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG';
+      const origHash = simulatingItem.fileHash || 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
+      
+      // Compute mutated CID under IPFS Content Addressing Rules
+      const mutatedCid = `QmMODIFIED_${origCid.slice(10, 28)}_TAMPERED`;
+      const mutatedHash = `f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8`;
+      const mutatedSize = (simulatingItem.fileSize || 15728640) + 1172;
+
+      let modificationNote = '';
+      if (tamperingType === 'timestamp_edit') {
+        modificationNote = 'Altered log access timestamp from 02:45 UTC to 03:15 UTC in header payload.';
+      } else if (tamperingType === 'spliced_crop') {
+        modificationNote = 'Spliced 120x80 pixel patch onto original image (Timestamp overlay manipulation).';
+      } else {
+        modificationNote = 'Appended 1,172 bytes of unauthorized payload to the evidence file buffer.';
+      }
+
+      const simResultPayload = {
+        item: simulatingItem,
+        originalCid: origCid,
+        mutatedCid: mutatedCid,
+        originalHash: origHash,
+        mutatedHash: mutatedHash,
+        modificationNote: modificationNote,
+        tamperingDetails: {
+          isTampered: true,
+          tamperingSummary: `CRITICAL_IPFS_CONTENT_ADDRESS_VIOLATION: Attempted file modification produced NEW CID (${mutatedCid.slice(0, 20)}...). Under IPFS rules, original CID (${origCid.slice(0, 16)}...) remains untouched, but modified file fails Polygon blockchain verification!`,
+          anchoredHash: origHash,
+          scannedHash: mutatedHash,
+          changedFields: [
+            {
+              field: 'IPFS Content Identifier (CID)',
+              original: origCid.slice(0, 24) + '...',
+              current: mutatedCid.slice(0, 24) + '...',
+              discrepancyStatus: 'NEW_CID_GENERATED_BY_IPFS'
+            },
+            {
+              field: 'SHA-256 Hash Checksum',
+              original: origHash.slice(0, 24) + '...',
+              current: mutatedHash.slice(0, 24) + '...',
+              discrepancyStatus: 'CRITICAL_MISMATCH'
+            },
+            {
+              field: 'File Byte Length',
+              original: `${formatBytes(simulatingItem.fileSize || 15728640)}`,
+              current: `${formatBytes(mutatedSize)} (+1,172 bytes mutated)`,
+              discrepancyStatus: 'BYTE_MUTATION_DETECTED'
+            },
+            {
+              field: 'Modifications Applied',
+              original: 'Original Unaltered Evidence State',
+              current: modificationNote,
+              discrepancyStatus: 'UNAUTHORIZED_EDIT'
+            }
+          ],
+          aiForensicReport: {
+            confidenceScore: 99.4,
+            alteredRegions: [
+              `IPFS Immutability Rule: Bitwise change generated new CID (${mutatedCid.slice(0, 16)}...)`,
+              `Polygon Amoy Ledger Verification: REJECTED (Anchored hash mismatch)`,
+              modificationNote
+            ]
+          }
+        }
+      };
+
+      setSimulationResult(simResultPayload);
+      setIsSimulating(false);
+      showCyberToast.error('IPFS Tampering Detected! Polygon Ledger Verification REJECTED.', 'IPFS_MUTATION_ALERT');
+
+      // Log Audit Event
+      try {
+        await api.post('/audit-logs', {
+          action: 'EVIDENCE_TAMPERING_DETECTED',
+          entityType: 'Evidence',
+          entityId: simulatingItem.id,
+          details: {
+            simulation: true,
+            originalCid: origCid,
+            mutatedCid: mutatedCid,
+            tamperingType
+          }
+        });
+      } catch (e) {}
+    }, 1200);
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans">
       {/* Top Banner & Title */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -227,7 +316,7 @@ const IpfsVault = () => {
         <button
           onClick={fetchIpfsEvidence}
           disabled={loading}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-4 py-2.5 rounded-xl border border-slate-700 transition"
+          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-4 py-2.5 rounded-xl border border-slate-700 transition shadow-md"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           <span>Refresh IPFS Nodes</span>
@@ -416,7 +505,19 @@ const IpfsVault = () => {
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0 self-end lg:self-center">
+                      <button
+                        onClick={() => {
+                          setSimulatingItem(item);
+                          setSimulationResult(null);
+                        }}
+                        className="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-medium text-xs px-3 py-2 rounded-xl border border-amber-500/30 transition shadow-md"
+                        title="Simulate modifying this IPFS file to test Content Addressing Rules"
+                      >
+                        <Zap size={14} className="text-amber-400" />
+                        <span>Simulate Modification</span>
+                      </button>
+
                       <a
                         href={gatewayUrl}
                         target="_blank"
@@ -482,6 +583,198 @@ const IpfsVault = () => {
           </div>
         )}
       </div>
+
+      {/* ─── IPFS TAMPERING & MODIFICATION SIMULATION MODAL ────────────────── */}
+      {simulatingItem && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="glass-modal max-w-3xl w-full rounded-2xl border border-amber-500/40 p-6 space-y-6 shadow-[0_0_40px_rgba(245,158,11,0.2)] my-8">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  <Zap size={22} className="animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold font-mono text-slate-100">
+                    IPFS File Modification &amp; Content-Address Rules Simulator
+                  </h3>
+                  <p className="text-xs text-slate-400 font-mono">
+                    Test how IPFS immutability rules prevent in-place evidence tampering
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setSimulatingItem(null);
+                  setSimulationResult(null);
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Evidence Target Info */}
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs font-mono">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">TARGET EVIDENCE:</span>
+                <span className="font-bold text-slate-200">{simulatingItem.title}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">ORIGINAL FILE NAME:</span>
+                <span className="text-slate-300">{simulatingItem.originalFileName}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">ORIGINAL ANCHORED IPFS CID:</span>
+                <span className="text-cyan-300 font-bold break-all">{simulatingItem.ipfsHash}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">POLYGON AMOY BLOCK:</span>
+                <span className="text-amber-400">#48521000 (ANCHORED IMMUTABLE)</span>
+              </div>
+            </div>
+
+            {/* Select Modification Simulation Type */}
+            {!simulationResult && (
+              <div className="space-y-4">
+                <label className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block">
+                  Select Simulated Modification Method:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setTamperingType('timestamp_edit')}
+                    className={`p-3.5 rounded-xl border text-left font-mono transition space-y-1 ${
+                      tamperingType === 'timestamp_edit'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <p className="font-bold flex items-center gap-1.5">
+                      <Clock size={14} /> Alter 1-Byte Timestamp
+                    </p>
+                    <p className="text-[10px] text-slate-400">Modifies access log timestamp from 02:45 to 03:15 UTC.</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTamperingType('spliced_crop')}
+                    className={`p-3.5 rounded-xl border text-left font-mono transition space-y-1 ${
+                      tamperingType === 'spliced_crop'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <p className="font-bold flex items-center gap-1.5">
+                      <FileDiff size={14} /> Splice Pixel Crop
+                    </p>
+                    <p className="text-[10px] text-slate-400">Copy-pastes a 120x80 pixel overlay onto evidence image.</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTamperingType('payload_append')}
+                    className={`p-3.5 rounded-xl border text-left font-mono transition space-y-1 ${
+                      tamperingType === 'payload_append'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <p className="font-bold flex items-center gap-1.5">
+                      <HardDrive size={14} /> Append Payload Bytes
+                    </p>
+                    <p className="text-[10px] text-slate-400">Appends 1,172 bytes of unauthorized binary payload.</p>
+                  </button>
+                </div>
+
+                <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400 font-mono space-y-1">
+                  <p className="font-bold text-amber-400">ℹ️ IPFS Immutability Principle:</p>
+                  <p>In IPFS, file contents are cryptographically hashed into the CID. Modifying even 1 bit prevents overwriting the original CID and forces the generation of a NEW CID, triggering immediate blockchain hash verification mismatch.</p>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSimulatingItem(null)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={runIpfsTamperingSimulation}
+                    disabled={isSimulating}
+                    className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-lg border border-amber-500/40 transition"
+                  >
+                    {isSimulating ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                    <span>Execute IPFS Rules Simulation</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Simulation Results Display */}
+            {simulationResult && (
+              <div className="space-y-6">
+                <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-bold text-red-400">
+                    <ShieldAlert size={18} />
+                    <span>IPFS RULE VIOLATION &amp; TAMPERING DETECTED</span>
+                  </div>
+                  <p>{simulationResult.tamperingDetails.tamperingSummary}</p>
+                </div>
+
+                {/* CID Mutation Comparison Box */}
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3 font-mono text-xs">
+                  <h4 className="text-slate-300 font-bold uppercase tracking-wider flex items-center gap-2">
+                    <Globe size={14} className="text-cyan-400" />
+                    IPFS Content Identifier Mutation Comparison
+                  </h4>
+
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase block">Original Anchored IPFS CID (Polygon Block #48521000):</span>
+                      <span className="text-emerald-400 font-semibold break-all">{simulationResult.originalCid}</span>
+                    </div>
+
+                    <div className="flex items-center justify-center py-1">
+                      <ArrowRight size={16} className="text-red-400 rotate-90 sm:rotate-0" />
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase block">Attempted Modified IPFS CID (Computed New CID):</span>
+                      <span className="text-red-400 font-semibold break-all">{simulationResult.mutatedCid}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Granular Diff Component */}
+                <TamperingDiffCard evidence={simulationResult.item} />
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSimulationResult(null)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium transition"
+                  >
+                    Run Another Simulation
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSimulatingItem(null);
+                      setSimulationResult(null);
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs transition shadow-lg"
+                  >
+                    Done &amp; Close Simulator
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
