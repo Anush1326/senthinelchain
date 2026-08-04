@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import { User } from '../models/index.js';
+import { recordAuditLog } from './auditController.js';
 
 // Fallback in-memory user store for development when PostgreSQL DB is offline
 export const memoryUserStore = new Map([
@@ -191,6 +192,17 @@ export const login = async (req, res, next) => {
 
     const token = generateToken(userObj.id, userObj.role, userObj.name, userObj.email);
 
+    recordAuditLog({
+      action: 'USER_LOGIN',
+      entityType: 'Auth',
+      entityId: userObj.id,
+      userId: userObj.id,
+      userEmail: userObj.email,
+      userName: userObj.name,
+      details: { role: userObj.role, authMethod: 'JWT Bearer Token' },
+      ipAddress: req.ip || '127.0.0.1'
+    }).catch(() => {});
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -205,6 +217,17 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = async (req, res) => {
+  recordAuditLog({
+    action: 'USER_LOGOUT',
+    entityType: 'Auth',
+    entityId: req.user?.id || 'a0000002-0000-0000-0000-000000000002',
+    userId: req.user?.id,
+    userEmail: req.user?.email || 'investigator@sentinelchain.ai',
+    userName: req.user?.name || 'Agent Priya Sharma',
+    details: { sessionEnd: new Date().toISOString() },
+    ipAddress: req.ip || '127.0.0.1'
+  }).catch(() => {});
+
   res.json({
     success: true,
     message: 'Logout successful'

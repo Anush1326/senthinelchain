@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import api from '../services/api';
 import {
   Shield,
   FileCheck,
@@ -200,6 +201,69 @@ const Dashboard = () => {
   const { user } = useAuthStore();
   const [copiedHash, setCopiedHash] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [evidenceList, setEvidenceList] = useState(mockRecentEvidence);
+
+  // Audit Logs State
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditFilterAction, setAuditFilterAction] = useState('ALL');
+  const [auditSearchQuery, setAuditSearchQuery] = useState('');
+  const [loadingAudit, setLoadingAudit] = useState(false);
+
+  useEffect(() => {
+    fetchDashboardEvidences();
+    fetchAuditLogs(auditFilterAction, auditSearchQuery);
+  }, [auditFilterAction]);
+
+  const fetchAuditLogs = async (action = auditFilterAction, search = auditSearchQuery) => {
+    setLoadingAudit(true);
+    try {
+      const params = {};
+      if (action && action !== 'ALL') params.action = action;
+      if (search && search.trim()) params.search = search.trim();
+      const response = await api.get('/audit-logs', { params });
+      const logs = response.data?.data?.data || response.data?.data;
+      if (Array.isArray(logs)) {
+        setAuditLogs(logs);
+      }
+    } catch (err) {
+      console.warn('Audit logs fetch fallback notice:', err);
+    } finally {
+      setLoadingAudit(false);
+    }
+  };
+
+  const formatBytes = (bytes) => {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const fetchDashboardEvidences = async () => {
+    try {
+      const response = await api.get('/evidence');
+      const items = response.data?.data?.data;
+      if (items && Array.isArray(items) && items.length > 0) {
+        const mapped = items.map(item => ({
+          id: item.id,
+          title: item.title,
+          category: (item.category || 'document').replace('_', ' '),
+          hash: item.fileHash || '',
+          ipfs: item.ipfsHash || '',
+          status: item.status || 'verified',
+          uploader: item.metadata?.investigator || 'Agent Priya Sharma',
+          uploaderRole: 'Investigator',
+          size: formatBytes(item.fileSize),
+          time: item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+          caseNumber: item.metadata?.caseId || item.caseId || 'SC-2026-00001'
+        }));
+        setEvidenceList(mapped);
+      }
+    } catch (err) {
+      console.warn('Dashboard evidence fetch fallback:', err);
+    }
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -209,8 +273,8 @@ const Dashboard = () => {
   };
 
   const filteredEvidence = filterType === 'all'
-    ? mockRecentEvidence
-    : mockRecentEvidence.filter(e => e.status === filterType);
+    ? evidenceList
+    : evidenceList.filter(e => e.status === filterType);
 
   return (
     <div className="space-y-8 pb-12">
@@ -556,6 +620,125 @@ const Dashboard = () => {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Audit Logs Module Section */}
+        <div className="glassmorphism rounded-2xl p-6 border border-slate-700/50 space-y-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <Activity size={20} className="text-cyan-400" />
+                System Audit Logs & Security Trails
+              </h3>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Track Login, Logout, Upload, Verification, Download, Evidence View & Blockchain Transactions
+              </p>
+            </div>
+
+            {/* Search Audit Logs */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 text-slate-500" size={16} />
+              <input
+                type="text"
+                value={auditSearchQuery}
+                onChange={(e) => {
+                  setAuditSearchQuery(e.target.value);
+                  fetchAuditLogs(auditFilterAction, e.target.value);
+                }}
+                placeholder="Search logs by action, IP, email..."
+                className="w-full bg-sentinel-dark-800/90 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-primary-500"
+              />
+            </div>
+          </div>
+
+          {/* Action Type Filter Pills */}
+          <div className="flex flex-wrap gap-1.5 bg-sentinel-dark-900/90 p-1.5 rounded-xl border border-slate-700/80 text-xs">
+            {[
+              { label: 'All Actions', value: 'ALL' },
+              { label: 'Login', value: 'USER_LOGIN' },
+              { label: 'Logout', value: 'USER_LOGOUT' },
+              { label: 'Upload', value: 'EVIDENCE_UPLOADED' },
+              { label: 'Verification', value: 'EVIDENCE_VERIFIED' },
+              { label: 'Download', value: 'EVIDENCE_DOWNLOADED' },
+              { label: 'Evidence View', value: 'EVIDENCE_VIEWED' },
+              { label: 'Blockchain Tx', value: 'BLOCKCHAIN_TRANSACTION' }
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setAuditFilterAction(item.value)}
+                className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                  auditFilterAction === item.value
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Audit Logs Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  <th className="pb-3 px-2">Timestamp</th>
+                  <th className="pb-3 px-2">Action Event</th>
+                  <th className="pb-3 px-2">User / Email</th>
+                  <th className="pb-3 px-2">IP Address</th>
+                  <th className="pb-3 px-2 text-right">Details & Payload</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-xs">
+                {auditLogs.length > 0 ? (
+                  auditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-2 font-mono text-[11px] text-slate-400">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+
+                      <td className="py-3 px-2">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                          log.action === 'USER_LOGIN' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                          log.action === 'USER_LOGOUT' ? 'bg-slate-500/15 text-slate-400 border-slate-500/30' :
+                          log.action === 'EVIDENCE_UPLOADED' ? 'bg-primary-500/15 text-primary-300 border-primary-500/30' :
+                          log.action === 'EVIDENCE_VERIFIED' ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' :
+                          log.action === 'EVIDENCE_DOWNLOADED' ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' :
+                          log.action === 'EVIDENCE_VIEWED' ? 'bg-purple-500/15 text-purple-300 border-purple-500/30' :
+                          'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
+                        }`}>
+                          {log.action.replace('_', ' ')}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-2">
+                        <div>
+                          <p className="font-semibold text-slate-200 text-xs">{log.userName || 'Agent Priya Sharma'}</p>
+                          <p className="text-[10px] text-slate-500 font-mono">{log.userEmail}</p>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-2 font-mono text-[11px] text-slate-400">
+                        {log.ipAddress || '192.168.1.105'}
+                      </td>
+
+                      <td className="py-3 px-2 text-right">
+                        <span className="font-mono text-[11px] text-slate-300 max-w-[220px] truncate block ml-auto" title={JSON.stringify(log.details)}>
+                          {log.details?.title || log.details?.caseId || log.details?.authMethod || log.details?.network || JSON.stringify(log.details)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-slate-500 text-xs">
+                      No audit logs found matching criteria.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

@@ -17,7 +17,17 @@ import {
   Eye,
   Plus,
   Shield,
-  Loader2
+  Loader2,
+  Calendar,
+  User,
+  Building,
+  FolderGit2,
+  Hash,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  RotateCcw,
+  SlidersHorizontal
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -32,7 +42,7 @@ const mockEvidenceList = [
     status: 'verified',
     fileSize: 15728640,
     originalFileName: 'auth_audit.log',
-    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', priority: 'high' },
+    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', department: 'Digital Forensics Unit', priority: 'high' },
     createdAt: '2026-07-28T09:12:00.000Z'
   },
   {
@@ -44,7 +54,7 @@ const mockEvidenceList = [
     status: 'verified',
     fileSize: 52428800,
     originalFileName: 'database_export.sql',
-    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', priority: 'medium' },
+    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', department: 'Digital Forensics Unit', priority: 'medium' },
     createdAt: '2026-07-28T08:45:00.000Z'
   },
   {
@@ -56,7 +66,7 @@ const mockEvidenceList = [
     status: 'flagged',
     fileSize: 2202009,
     originalFileName: 'cctv_frame_04.png',
-    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', priority: 'critical' },
+    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', department: 'Cyber Intelligence Division', priority: 'critical' },
     createdAt: '2026-07-28T07:30:00.000Z'
   },
   {
@@ -68,7 +78,7 @@ const mockEvidenceList = [
     status: 'verified',
     fileSize: 46080,
     originalFileName: 'phishing_header.eml',
-    metadata: { caseId: 'SC-2026-00002', investigator: 'Agent Meera Nair', priority: 'medium' },
+    metadata: { caseId: 'SC-2026-00002', investigator: 'Agent Meera Nair', department: 'Email Forensics', priority: 'medium' },
     createdAt: '2026-07-28T06:15:00.000Z'
   },
   {
@@ -80,12 +90,10 @@ const mockEvidenceList = [
     status: 'pending',
     fileSize: 32505856,
     originalFileName: 'traffic_dump.pcapng',
-    metadata: { caseId: 'SC-2026-00003', investigator: 'Agent Rajesh Kumar', priority: 'high' },
+    metadata: { caseId: 'SC-2026-00003', investigator: 'Agent Rajesh Kumar', department: 'Network Incident Unit', priority: 'high' },
     createdAt: '2026-07-28T04:20:00.000Z'
   }
 ];
-
-
 
 const CategoryIcon = ({ category }) => {
   switch (category) {
@@ -101,27 +109,94 @@ const CategoryIcon = ({ category }) => {
 const EvidenceList = () => {
   const [evidenceItems, setEvidenceItems] = useState(mockEvidenceList);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Search & Filter State
+  const [filters, setFilters] = useState({
+    search: '',
+    caseId: '',
+    evidenceId: '',
+    investigator: '',
+    department: '',
+    category: 'all',
+    status: 'all',
+    startDate: '',
+    endDate: '',
+    sortBy: 'createdAt',
+    sortOrder: 'DESC',
+    page: 1,
+    limit: 10
+  });
+
+  // Pagination Response State
+  const [paginationInfo, setPaginationInfo] = useState({
+    total: mockEvidenceList.length,
+    totalPages: 1,
+    currentPage: 1
+  });
+
   const [copiedHash, setCopiedHash] = useState('');
 
   useEffect(() => {
     fetchEvidences();
-  }, []);
+  }, [
+    filters.search,
+    filters.caseId,
+    filters.evidenceId,
+    filters.investigator,
+    filters.department,
+    filters.category,
+    filters.status,
+    filters.startDate,
+    filters.endDate,
+    filters.sortBy,
+    filters.sortOrder,
+    filters.page,
+    filters.limit
+  ]);
 
   const fetchEvidences = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/evidence');
-      if (response.data?.data?.data && response.data.data.data.length > 0) {
-        setEvidenceItems(response.data.data.data);
+      const response = await api.get('/evidence', { params: filters });
+      const payload = response.data?.data;
+
+      if (payload && Array.isArray(payload.data)) {
+        setEvidenceItems(payload.data);
+        setPaginationInfo({
+          total: payload.total || payload.data.length,
+          totalPages: payload.totalPages || Math.ceil((payload.total || payload.data.length) / filters.limit) || 1,
+          currentPage: payload.currentPage || filters.page
+        });
       }
     } catch (err) {
-      // Use mock fallback if API fails
+      console.warn('Evidence search fallback:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      search: '',
+      caseId: '',
+      evidenceId: '',
+      investigator: '',
+      department: '',
+      category: 'all',
+      status: 'all',
+      startDate: '',
+      endDate: '',
+      sortBy: 'createdAt',
+      sortOrder: 'DESC',
+      page: 1,
+      limit: 10
+    });
+    toast.success('Search filters reset to default');
   };
 
   const copyToClipboard = (text) => {
@@ -139,18 +214,6 @@ const EvidenceList = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const filteredEvidence = evidenceItems.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.fileHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.metadata?.caseId || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
-
   return (
     <div className="space-y-6 pb-12">
       {/* Header Bar */}
@@ -161,7 +224,7 @@ const EvidenceList = () => {
             Digital Evidence Locker
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Browse, search, and verify cryptographically anchored evidence files.
+            Advanced Search & Filtering across Case ID, Evidence ID, Investigator, Department, Date & Status.
           </p>
         </div>
 
@@ -174,28 +237,27 @@ const EvidenceList = () => {
         </Link>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="glassmorphism rounded-2xl p-4 border border-slate-700/50 flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search Input */}
-        <div className="relative w-full md:w-80">
-          <Search size={18} className="absolute left-3.5 top-3 text-slate-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by title, SHA-256 hash, or Case ID..."
-            className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none focus:border-primary-500"
-          />
-        </div>
+      {/* Main Search & Filter Control Card */}
+      <div className="glassmorphism rounded-2xl p-5 border border-slate-700/50 space-y-4 shadow-xl">
+        {/* Top Search Bar + Advanced Toggle */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Main Search Input */}
+          <div className="relative w-full md:w-96">
+            <Search size={18} className="absolute left-3.5 top-3 text-slate-400" />
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              placeholder="Search by title, SHA-256 hash, or keywords..."
+              className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-slate-200 text-sm placeholder:text-slate-500 focus:outline-none focus:border-primary-500"
+            />
+          </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <Filter size={16} className="text-slate-400" />
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            {/* Quick Status Filter */}
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={filters.status}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
               className="bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-primary-500"
             >
               <option value="all">All Statuses</option>
@@ -203,23 +265,162 @@ const EvidenceList = () => {
               <option value="pending">Pending Verification</option>
               <option value="flagged">Tampered / Flagged</option>
             </select>
-          </div>
 
-          {/* Category Filter */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-primary-500"
-          >
-            <option value="all">All Categories</option>
-            <option value="document">Document</option>
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-            <option value="email">Email</option>
-            <option value="digital_forensics">Digital Forensics</option>
-            <option value="log_file">Server Log</option>
-          </select>
+            {/* Quick Category Filter */}
+            <select
+              value={filters.category}
+              onChange={(e) => handleFilterChange('category', e.target.value)}
+              className="bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-primary-500"
+            >
+              <option value="all">All Types</option>
+              <option value="document">Document</option>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+              <option value="email">Email</option>
+              <option value="digital_forensics">Digital Forensics</option>
+              <option value="log_file">Server Log</option>
+            </select>
+
+            {/* Advanced Search Toggle Button */}
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                showAdvancedFilters
+                  ? 'bg-primary-600/20 text-primary-300 border-primary-500/50'
+                  : 'bg-sentinel-dark-800 text-slate-300 border-slate-700 hover:border-slate-600'
+              }`}
+            >
+              <SlidersHorizontal size={14} />
+              <span>{showAdvancedFilters ? 'Hide Filters' : 'Advanced Search'}</span>
+            </button>
+          </div>
         </div>
+
+        {/* Collapsible Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <div className="pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            {/* 1. Case ID */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <FolderGit2 size={12} className="text-primary-400" /> Case ID
+              </label>
+              <input
+                type="text"
+                value={filters.caseId}
+                onChange={(e) => handleFilterChange('caseId', e.target.value)}
+                placeholder="e.g. SC-2026-00001"
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500 font-mono"
+              />
+            </div>
+
+            {/* 2. Evidence ID */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Hash size={12} className="text-cyan-400" /> Evidence ID
+              </label>
+              <input
+                type="text"
+                value={filters.evidenceId}
+                onChange={(e) => handleFilterChange('evidenceId', e.target.value)}
+                placeholder="e.g. e0000001"
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500 font-mono"
+              />
+            </div>
+
+            {/* 3. Investigator */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <User size={12} className="text-emerald-400" /> Investigator
+              </label>
+              <input
+                type="text"
+                value={filters.investigator}
+                onChange={(e) => handleFilterChange('investigator', e.target.value)}
+                placeholder="e.g. Agent Priya Sharma"
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            {/* 4. Department */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Building size={12} className="text-amber-400" /> Department
+              </label>
+              <input
+                type="text"
+                value={filters.department}
+                onChange={(e) => handleFilterChange('department', e.target.value)}
+                placeholder="e.g. Digital Forensics Unit"
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500"
+              />
+            </div>
+
+            {/* 5. Start Date */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Calendar size={12} className="text-purple-400" /> From Date
+              </label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500 font-mono"
+              />
+            </div>
+
+            {/* 6. End Date */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Calendar size={12} className="text-purple-400" /> To Date
+              </label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500 font-mono"
+              />
+            </div>
+
+            {/* 7. Sort By */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <ArrowUpDown size={12} className="text-blue-400" /> Sort Field
+              </label>
+              <select
+                value={filters.sortBy}
+                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500"
+              >
+                <option value="createdAt">Date Created</option>
+                <option value="title">Evidence Title</option>
+                <option value="fileSize">File Size</option>
+              </select>
+            </div>
+
+            {/* 8. Sort Direction & Reset */}
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Order</label>
+                <select
+                  value={filters.sortOrder}
+                  onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
+                  className="w-full bg-sentinel-dark-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-primary-500 font-mono"
+                >
+                  <option value="DESC">Descending (Newest / Largest)</option>
+                  <option value="ASC">Ascending (Oldest / Smallest)</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleResetFilters}
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-all flex items-center gap-1 text-xs shrink-0"
+                title="Reset Filters"
+              >
+                <RotateCcw size={14} /> Reset
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Evidence Table */}
@@ -230,6 +431,7 @@ const EvidenceList = () => {
               <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-900/40">
                 <th className="py-3.5 px-4">Evidence Title & Case</th>
                 <th className="py-3.5 px-4">Category</th>
+                <th className="py-3.5 px-4">Investigator & Department</th>
                 <th className="py-3.5 px-4">SHA-256 Hash</th>
                 <th className="py-3.5 px-4">Status</th>
                 <th className="py-3.5 px-4">File Size</th>
@@ -239,19 +441,19 @@ const EvidenceList = () => {
             <tbody className="divide-y divide-slate-800/60 text-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Loader2 size={24} className="animate-spin mx-auto mb-2 text-primary-400" />
-                    Loading evidence locker records...
+                    Searching digital evidence locker...
                   </td>
                 </tr>
-              ) : filteredEvidence.length === 0 ? (
+              ) : evidenceItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    No evidence records found matching your filters.
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    No evidence records found matching your advanced search criteria.
                   </td>
                 </tr>
               ) : (
-                filteredEvidence.map((item) => (
+                evidenceItems.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-800/40 transition-colors group">
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
@@ -263,7 +465,7 @@ const EvidenceList = () => {
                             {item.title}
                           </p>
                           <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                            {item.metadata?.caseId || 'SC-2026-00001'} • {item.originalFileName || 'file.dat'}
+                            Case: {item.metadata?.caseId || item.caseId || 'SC-2026-00001'} • ID: {item.id?.slice(0, 8)}
                           </p>
                         </div>
                       </div>
@@ -275,10 +477,17 @@ const EvidenceList = () => {
                       </span>
                     </td>
 
+                    <td className="py-4 px-4">
+                      <div>
+                        <p className="text-slate-300 font-medium">{item.metadata?.investigator || 'Agent Priya Sharma'}</p>
+                        <p className="text-[10px] text-slate-500">{item.metadata?.department || 'Digital Forensics Unit'}</p>
+                      </div>
+                    </td>
+
                     <td className="py-4 px-4 font-mono">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-400 text-[11px] bg-sentinel-dark-800 px-2 py-1 rounded border border-slate-700">
-                          {item.fileHash ? `${item.fileHash.slice(0, 10)}...${item.fileHash.slice(-8)}` : 'N/A'}
+                          {item.fileHash ? `${item.fileHash.slice(0, 8)}...${item.fileHash.slice(-6)}` : 'N/A'}
                         </span>
                         {item.fileHash && (
                           <button
@@ -327,6 +536,57 @@ const EvidenceList = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Footer Controls */}
+        <div className="p-4 border-t border-slate-800 bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className="text-slate-400">
+            Showing Page <span className="font-semibold text-slate-200">{paginationInfo.currentPage}</span> of{' '}
+            <span className="font-semibold text-slate-200">{paginationInfo.totalPages}</span>{' '}
+            <span className="font-mono text-slate-500">({paginationInfo.total} Total Evidence Records)</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Limit Selector */}
+            <div className="flex items-center gap-2 text-slate-400">
+              <span>Per Page:</span>
+              <select
+                value={filters.limit}
+                onChange={(e) => handleFilterChange('limit', Number(e.target.value))}
+                className="bg-sentinel-dark-800 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 focus:outline-none"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
+            {/* Prev / Next Page Buttons */}
+            <div className="flex items-center gap-1">
+              <button
+                disabled={filters.page <= 1}
+                onClick={() => handleFilterChange('page', filters.page - 1)}
+                className="p-1.5 rounded-lg bg-sentinel-dark-800 border border-slate-700 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                title="Previous Page"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              <span className="px-3 py-1 bg-sentinel-dark-800 border border-slate-700 rounded-lg font-mono text-slate-200">
+                {filters.page}
+              </span>
+
+              <button
+                disabled={filters.page >= paginationInfo.totalPages}
+                onClick={() => handleFilterChange('page', filters.page + 1)}
+                className="p-1.5 rounded-lg bg-sentinel-dark-800 border border-slate-700 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                title="Next Page"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

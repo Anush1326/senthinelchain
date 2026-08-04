@@ -1,0 +1,181 @@
+[
+  {
+    "id": "086073f6-85d5-4c4d-9425-3067d695ff32",
+    "title": "Screenshot 2026 07 27 091349",
+    "description": "virustool",
+    "category": "image",
+    "fileHash": "d5828f1326c5b6db7806c79a6646f4da1ffd3bbf42e8d81ba00866efed71bc5a",
+    "ipfsHash": "Qmci71tRG3muesf2vmNAxdbWtjhgtFj7JTdWcnJxZCRu2Z",
+    "transactionHash": "0x5e0774ad8752f19529c48344746370716934c58678952899fd859b36f71699d1",
+    "blockNumber": 48521000,
+    "fileSize": 119388,
+    "fileType": "image/png",
+    "originalFileName": "Screenshot 2026-07-27 091349.png",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T04:21:12.924Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T04:21:12.935Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T04:21:12.935Z"
+  },
+  {
+    "id": "7af8ea99-c819-4723-a581-3a23beaf8330",
+    "title": "711724UCY105 Anush G IRM EXP2",
+    "description": "",
+    "category": "document",
+    "fileHash": "d2d39a857845c7ddd490d7e10c5fab6fddcff60fe4770370246e960dc0c47109",
+    "ipfsHash": "QmcXdUBC5p8pDCGY1372uxxhmjbMiGepx72zZaFVUA8Zgk",
+    "transactionHash": "0x1cf99ee2cddb53e2874306b902456b356a6fa5da4c048baffbfe92c858e49102",
+    "blockNumber": 48521000,
+    "fileSize": 1175520,
+    "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "originalFileName": "711724UCY105_Anush G IRM EXP2.docx",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T04:16:25.007Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T04:16:25.028Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T04:16:25.028Z"
+  },
+  {
+    "id": "ecf7f3db-49a8-4871-8baf-e1780e055e83",
+    "title": "711724UCY101 Abarnesh Experiment2",
+    "description": "",
+    "category": "document",
+    "fileHash": "d3448ae2565acddc1caa13600ed4ea0f81371209d4002ce1a86e56440d0713bd",
+    "ipfsHash": "QmcZMMS8TpJTWzov4rv2Nx1pbhcCw4wMSHSGDkUXswiDzU",
+    "transactionHash": "0x94d09fc4f38cbe64a2f9dc2b35ff312e879989a14b9b94ca2735f72942eeac14",
+    "blockNumber": 48521000,
+    "fileSize": 7993,
+    "fileType": "application/pdf",
+    "originalFileName": "711724UCY101_Abarnesh_Experiment2.pdf",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T03:28:24.840Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T03:28:24.850Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      },
+      {
+        "action": "EVIDENCE_VERIFIED",
+        "by": "G. Anush",
+        "timestamp": "2026-08-04T03:34:00.882Z",
+        "status": "verified",
+        "notes": "Verified cryptographic SHA-256 hash match on SentinelChain"
+      }
+    ],
+    "createdAt": "2026-08-04T03:28:24.850Z",
+    "verifiedBy": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f"
+  },
+  {
+    "id": "e0000001-0000-0000-0000-000000000001",
+    "title": "Server Incident Access Logs – June 2026",
+    "description": "Cryptographically hashed server authorization log file",
+    "category": "log_file",
+    "fileHash": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+    "ipfsHash": "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+    "transactionHash": "0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01",
+    "blockNumber": 48521000,
+    "status": "verified",
+    "fileSize": 15728640,
+    "fileType": "text/plain",
+    "originalFileName": "auth_audit.log",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "Agent Priya Sharma",
+      "department": "Digital Forensics Unit",
+      "priority": "high"
+    },
+    "createdAt": "2026-07-28T09:12:00.000Z"
+  },
+  {
+    "id": "e0000002-0000-0000-0000-000000000002",
+    "title": "PostgreSQL Forensic Dump File",
+    "description": "Database export dump",
+    "category": "digital_forensics",
+    "fileHash": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
+    "ipfsHash": "QmT5NvUtoM5nWFfrQdVrFtvGfKFmG7AHE8P34isapyhCxX",
+    "transactionHash": "0xdef456789abc123def456789abc123def456789abc123def456789abc123def402",
+    "blockNumber": 48521050,
+    "status": "verified",
+    "fileSize": 52428800,
+    "fileType": "application/sql",
+    "originalFileName": "database_export.sql",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "Agent Priya Sharma",
+      "department": "Digital Forensics Unit",
+      "priority": "medium"
+    },
+    "createdAt": "2026-07-28T08:45:00.000Z"
+  }
+]
