@@ -7,16 +7,19 @@ import { recordAuditLog } from './auditController.js';
 export const verifyByHash = async (req, res, next) => {
   try {
     const rawHash = req.body.fileHash || req.body.hash;
+    const rawFileName = req.body.fileName || req.body.originalFileName;
     
-    if (!rawHash) {
-      return res.status(400).json(formatResponse(false, null, 'File hash or hash payload is required'));
+    if (!rawHash && !rawFileName) {
+      return res.status(400).json(formatResponse(false, null, 'File hash or filename is required'));
     }
 
-    const searchHash = String(rawHash).trim().toLowerCase();
+    const searchHash = rawHash ? String(rawHash).trim().toLowerCase() : '';
+    const searchName = rawFileName ? String(rawFileName).trim().toLowerCase() : '';
+
     let evidence = null;
 
     try {
-      if (Evidence && typeof Evidence.findOne === 'function') {
+      if (Evidence && typeof Evidence.findOne === 'function' && searchHash) {
         evidence = await Evidence.findOne({ where: { fileHash: searchHash } });
       }
     } catch (dbErr) {
@@ -24,13 +27,24 @@ export const verifyByHash = async (req, res, next) => {
     }
 
     if (!evidence) {
-      evidence = memoryEvidenceStore.find(
-        (item) => 
-          (item.fileHash || '').toLowerCase() === searchHash || 
-          (item.ipfsHash || '').toLowerCase() === searchHash ||
-          (item.id || '').toLowerCase() === searchHash ||
-          (item.originalFileName || '').toLowerCase() === searchHash
-      );
+      // 1. First try exact hash match
+      if (searchHash) {
+        evidence = memoryEvidenceStore.find(
+          (item) => 
+            (item.fileHash || '').toLowerCase() === searchHash || 
+            (item.ipfsHash || '').toLowerCase() === searchHash ||
+            (item.id || '').toLowerCase() === searchHash
+        );
+      }
+      
+      // 2. If not found by hash, try original filename / title match
+      if (!evidence && searchName) {
+        evidence = memoryEvidenceStore.find(
+          (item) => 
+            (item.originalFileName || '').toLowerCase() === searchName ||
+            (item.title || '').toLowerCase() === searchName
+        );
+      }
     }
 
     if (!evidence) {
@@ -46,7 +60,7 @@ export const verifyByHash = async (req, res, next) => {
       userId: req.user?.id,
       userEmail: req.user?.email || 'investigator@sentinelchain.ai',
       userName: req.user?.name || 'Agent Priya Sharma',
-      details: { fileHash: hash, status: 'VERIFIED', title: evidence.title },
+      details: { fileHash: searchHash || evidence.fileHash, status: 'VERIFIED', title: evidence.title },
       ipAddress: req.ip || '127.0.0.1'
     }).catch(() => {});
 

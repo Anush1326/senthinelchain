@@ -1,5 +1,48 @@
 [
   {
+    "id": "b6e2b998-7e9f-43b3-bd8b-7565cb0f1169",
+    "title": "Screenshot 2026 07 27 092157",
+    "description": "",
+    "category": "image",
+    "fileHash": "acd4a6a1768aae4117a669174e7f6b711ad18fee68c8934629cbbe97900f7a02",
+    "ipfsHash": "QmZyJuLEvDWtxqNQ4zAcAu8NocV14t3vaZEuaFVm7hiijK",
+    "transactionHash": "0x3a3832e9523589c6355a4010cc8ca14d9a48e80725832979d5ce047ef3fa93d9",
+    "blockNumber": 48521000,
+    "fileSize": 594299,
+    "fileType": "image/png",
+    "originalFileName": "Screenshot 2026-07-27 092157.png",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T14:01:27.983Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T14:01:27.996Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T14:01:27.996Z"
+  },
+  {
     "id": "086073f6-85d5-4c4d-9425-3067d695ff32",
     "title": "Screenshot 2026 07 27 091349",
     "description": "virustool",
