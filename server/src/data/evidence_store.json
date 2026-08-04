@@ -1,5 +1,134 @@
 [
   {
+    "id": "ba55c354-ecea-48b7-957d-d11c7344caf9",
+    "title": "Anush G intern report",
+    "description": "",
+    "category": "document",
+    "fileHash": "349563bad16684dd21742ce28d62102cc95ede137082ec01c0a4fd4061f3304e",
+    "ipfsHash": "QmRsv2jaHwRRpcbVhNpenaCcWxyk8j3AbH8vAYaVASG5th",
+    "transactionHash": "0xf33a79b4a100b4eec949c754764f64f9ccd53bee7724eb72fac205f76ed3e70b",
+    "blockNumber": 48521000,
+    "fileSize": 29404,
+    "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "originalFileName": "Anush G intern report.docx",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T15:35:39.537Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T15:35:39.543Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T15:35:39.543Z"
+  },
+  {
+    "id": "852e6782-5c96-48df-ad76-89dca244dc12",
+    "title": "Screenshot 2026 07 27 092919",
+    "description": "",
+    "category": "image",
+    "fileHash": "f54d65116f28abfe35ec993169a0e21b94e2403230ccdb38dc97ab290f1a2e37",
+    "ipfsHash": "QmerD3VjS6EXuXGC2ifKJRV5DPZUa9kE9zteVdHkbCSikW",
+    "transactionHash": "0xb071efed8b81d27c80d772441669c43eeba3b5aef3b43d7e48b33ee4e913aaf1",
+    "blockNumber": 48521000,
+    "fileSize": 65677,
+    "fileType": "image/png",
+    "originalFileName": "Screenshot 2026-07-27 092919.png",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T15:29:53.906Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T15:29:53.913Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T15:29:53.913Z"
+  },
+  {
+    "id": "3ab8c3ec-bb6b-4de5-aa0b-f2d001cd0b96",
+    "title": "Screenshot 2026 07 27 092919",
+    "description": "",
+    "category": "image",
+    "fileHash": "b1e164e0242234f1168eb7d3da149226a9d64db1b3a15faff0b350016fb10dbf",
+    "ipfsHash": "QmaK2DELWBHN9rqCBtPSm2VvNHcYRK9wxxQggvb6es6p4n",
+    "transactionHash": "0x83a6a157a084319f1e7e44079607b95244b10e2497f64f8f95984f918d84ae9a",
+    "blockNumber": 48521000,
+    "fileSize": 69859,
+    "fileType": "image/png",
+    "originalFileName": "Screenshot 2026-07-27 092919.png",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T15:27:28.218Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "b3444989-6f92-4ca1-ad5e-8391c62c3c7f",
+        "timestamp": "2026-08-04T15:27:28.231Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T15:27:28.231Z"
+  },
+  {
     "id": "8892bb8b-2f9e-440c-bc57-2d34fcc7cd53",
     "title": "Screenshot 2026 07 27 092919",
     "description": "",

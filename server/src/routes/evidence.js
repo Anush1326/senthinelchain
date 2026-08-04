@@ -7,7 +7,8 @@ import {
   updateEvidence, 
   deleteEvidence,
   verifyEvidence,
-  getChainOfCustody
+  getChainOfCustody,
+  downloadEvidence
 } from '../controllers/evidenceController.js';
 import { protect, optionalProtect, authorize } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
@@ -26,6 +27,7 @@ router.route('/:id')
   .put(protect, updateEvidence)
   .delete(protect, authorize('admin'), deleteEvidence);
 
+router.get('/:id/download', optionalProtect, downloadEvidence);
 router.post('/:id/verify', protect, authorize('admin', 'investigator'), verifyEvidence);
 router.get('/:id/chain-of-custody', getChainOfCustody);
 

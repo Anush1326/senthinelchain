@@ -231,6 +231,51 @@ export const getAuditLogs = async (req, res, next) => {
 };
 
 /**
+ * Get audit logs for a specific evidence ID
+ */
+export const getAuditLogsByEvidenceId = async (req, res, next) => {
+  try {
+    const { evidenceId } = req.params;
+
+    let logs = [...memoryAuditStore];
+
+    // Try to get from PostgreSQL first
+    try {
+      if (AuditLog && typeof AuditLog.findAll === 'function') {
+        const dbLogs = await AuditLog.findAll({
+          where: { entityId: evidenceId },
+          order: [['createdAt', 'DESC']]
+        });
+        if (dbLogs && dbLogs.length > 0) {
+          logs = dbLogs.map(row => ({
+            id: row.id,
+            action: row.action,
+            entityType: row.entityType,
+            entityId: row.entityId,
+            userId: row.userId,
+            userEmail: row.details?.userEmail || 'investigator@sentinelchain.ai',
+            userName: row.details?.userName || 'Agent Priya Sharma',
+            details: row.details || {},
+            ipAddress: row.ipAddress || '127.0.0.1',
+            createdAt: row.createdAt
+          }));
+          return res.json(formatResponse(true, { total: logs.length, data: logs }));
+        }
+      }
+    } catch (e) {
+      // fallback to memory
+    }
+
+    // Filter memory store by entityId
+    const filtered = logs.filter(l => l.entityId === evidenceId);
+
+    res.json(formatResponse(true, { total: filtered.length, data: filtered }));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Create audit log endpoint
  */
 export const createAuditLog = async (req, res, next) => {
