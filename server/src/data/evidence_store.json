@@ -1,5 +1,91 @@
 [
   {
+    "id": "0e4c2445-5fcc-4b96-9637-74366688dcff",
+    "title": "2026 Formula1 Red Bull Racing RB22 001 2000",
+    "description": "",
+    "category": "image",
+    "fileHash": "f9b4bb582e49ac2dae0b4459425d4cc9876934a8a954657271e1bee54b288858",
+    "ipfsHash": "Qmf9Q4ofeRX7sf7BfaFZabMoeZhpzZn8RKdaQewqbcfNcP",
+    "transactionHash": "0x2c1efea1e713a854f26f2d27f8a539063d4ff0f6ea06e06714f8b7e17daf16fe",
+    "blockNumber": 48521000,
+    "fileSize": 963759,
+    "fileType": "image/jpeg",
+    "originalFileName": "2026-Formula1-Red-Bull-Racing-RB22-001-2000.jpg",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T21:19:32.551Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "45751e00-bdc9-4752-8fa9-f6446060faf6",
+        "timestamp": "2026-08-04T21:19:32.565Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T21:19:32.565Z"
+  },
+  {
+    "id": "ab7319f4-7fe4-4bc0-9815-b44f116a112f",
+    "title": "2026 Formula1 Red Bull Racing RB22 001 2000",
+    "description": "",
+    "category": "image",
+    "fileHash": "f9b4bb582e49ac2dae0b4459425d4cc9876934a8a954657271e1bee54b288858",
+    "ipfsHash": "Qmf9Q4ofeRX7sf7BfaFZabMoeZhpzZn8RKdaQewqbcfNcP",
+    "transactionHash": "0x1e2b4b8662c731253f9e5aa83212efff3d6997c93d8628d24e4f01ed3bba194f",
+    "blockNumber": 48521000,
+    "fileSize": 963759,
+    "fileType": "image/jpeg",
+    "originalFileName": "2026-Formula1-Red-Bull-Racing-RB22-001-2000.jpg",
+    "tags": [
+      "cybercrime",
+      "forensic-export",
+      "high-priority"
+    ],
+    "status": "verified",
+    "metadata": {
+      "caseId": "SC-2026-00001",
+      "investigator": "G. Anush",
+      "department": "Digital Forensics Division",
+      "priority": "medium",
+      "uploadedAt": "2026-08-04T21:15:59.738Z"
+    },
+    "aiAnalysis": {
+      "metadataConsistency": 99.8,
+      "tamperingDetected": false,
+      "riskLevel": "Low Risk",
+      "confidenceScore": 98.5,
+      "recommendation": "Evidence verified clean. No signature tampering detected."
+    },
+    "chainOfCustody": [
+      {
+        "action": "EVIDENCE_UPLOADED",
+        "by": "G. Anush",
+        "userId": "0e2f0e1a-7d41-4380-8d00-9a5f0daeb02a",
+        "timestamp": "2026-08-04T21:15:59.746Z",
+        "notes": "Uploaded to Case SC-2026-00001"
+      }
+    ],
+    "createdAt": "2026-08-04T21:15:59.746Z"
+  },
+  {
     "id": "8168893d-5d4a-4c4a-b323-9f586b5062df",
     "title": "IMG 20251229 135428",
     "description": "",

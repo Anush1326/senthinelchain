@@ -854,46 +854,21 @@ End of Forensic Evidence Package • SentinelChain AI Security System
 export const getAttackScenarios = async (req, res, next) => {
   try {
     const scenarios = [
-      {
-        id: 'ipfs_reupload_tampering',
-        name: 'IPFS Content-Addressed File Modification & Re-upload',
-        description: 'Simulates downloading an original evidence file, altering 1 byte, and re-uploading to IPFS. Tests IPFS immutability rules (NEW CID generated) and Polygon blockchain hash mismatch detection.',
-        riskLevel: 'CRITICAL',
-        targetType: 'image_or_log',
-        category: 'IPFS & Cryptographic Integrity'
-      },
-      {
-        id: 'replay_tx_attack',
-        name: 'Blockchain Transaction Replay Attack',
-        description: 'Simulates replaying an old signed Polygon transaction receipt for an unauthorized case context. Tests transaction nonce, chain ID, and target hash validation.',
-        riskLevel: 'HIGH',
-        targetType: 'blockchain_tx',
-        category: 'Blockchain Nonce & State'
-      },
-      {
-        id: 'unauthorized_access',
-        name: 'Unauthorized Evidence Exfiltration & Access Escalation',
-        description: 'Simulates an unauthenticated or low-privilege user attempting restricted evidence deletion or download. Tests Express RBAC middleware and audit log alerts.',
-        riskLevel: 'HIGH',
-        targetType: 'iam_access',
-        category: 'Identity & Access Control'
-      },
-      {
-        id: 'exif_manipulation',
-        name: 'Metadata EXIF Clock Shift & Software Tampering',
-        description: 'Simulates stripping camera sensor serial numbers, altering creation clock by +2 hours, and modifying EXIF software tags to Photoshop.',
-        riskLevel: 'MEDIUM',
-        targetType: 'metadata',
-        category: 'Metadata Consistency'
-      },
-      {
-        id: 'splicing_crop',
-        name: 'AI Image Splicing & Re-compression Attack',
-        description: 'Simulates overlaying a fake timestamp patch on CCTV footage and re-saving at JPEG quality 70. Tests Error Level Analysis (ELA) and noise variance detectors.',
-        riskLevel: 'CRITICAL',
-        targetType: 'image',
-        category: 'AI Forensics'
-      }
+      { id: 'one_pixel_mod', name: '1-Pixel RGB Alteration Attack', description: 'Simulates modifying a single pixel color value. Demonstrates IPFS CID change and SHA-256 hash divergence on 1-bit edit.', riskLevel: 'CRITICAL', category: 'Pixel Tampering' },
+      { id: 'object_removal', name: 'Inpainting Object / Stamp Removal', description: 'Simulates removing a person or object from CCTV evidence using generative inpainting.', riskLevel: 'CRITICAL', category: 'Forgery' },
+      { id: 'object_addition', name: 'Unauthorized Object Insertion', description: 'Simulates inserting a weapon or vehicle into the original evidence frame.', riskLevel: 'CRITICAL', category: 'Forgery' },
+      { id: 'face_blur', name: 'Facial Anonymization & Blur Tampering', description: 'Simulates applying Gaussian blur over suspect face region to obfuscate identity.', riskLevel: 'HIGH', category: 'Anonymization' },
+      { id: 'cropping', name: 'Border Pixel Cropping (-5%)', description: 'Simulates cropping frame boundaries to remove peripheral evidence details.', riskLevel: 'HIGH', category: 'Geometry' },
+      { id: 'rotate_image', name: 'Geometric Rotation & Shear', description: 'Simulates rotating frame 90 degrees to bypass automated aspect ratio detectors.', riskLevel: 'MEDIUM', category: 'Geometry' },
+      { id: 'brightness_contrast', name: 'Brightness & Contrast Manipulation', description: 'Simulates adjusting gamma exposure to hide dark background details.', riskLevel: 'MEDIUM', category: 'Filter' },
+      { id: 'jpeg_recompression', label: 'JPEG Re-compression (Quality 70)', description: 'Simulates re-saving image at reduced quality 70, introducing ELA grid artifacts.', riskLevel: 'HIGH', category: 'Compression' },
+      { id: 'exif_removal', name: 'Complete EXIF Metadata Stripping', description: 'Simulates erasing camera serial number, creation timestamp, and GPS coordinates.', riskLevel: 'HIGH', category: 'Metadata' },
+      { id: 'fake_metadata', name: 'Synthetic EXIF Header Injection', description: 'Simulates injecting fake creation clock timestamp and Photoshop software tag.', riskLevel: 'HIGH', category: 'Metadata' },
+      { id: 'png_to_jpg', name: 'Format Transcode (PNG to JPEG)', description: 'Simulates re-encoding lossless PNG to lossy JPEG buffer.', riskLevel: 'MEDIUM', category: 'Format Transcode' },
+      { id: 'resize_image', name: 'Bicubic Image Rescaling', description: 'Simulates downscaling image resolution from 4K to 1080p.', riskLevel: 'MEDIUM', category: 'Geometry' },
+      { id: 'watermark_add_remove', name: 'Watermark Addition & Removal', description: 'Simulates stamping or erasing copyright watermark logos.', riskLevel: 'HIGH', category: 'Forgery' },
+      { id: 'copy_move', name: 'Copy-Move Region Cloning Attack', description: 'Simulates cloning keypoint patches within the same image.', riskLevel: 'CRITICAL', category: 'Forgery' },
+      { id: 'splicing', name: 'Image Splicing & Overlay Attack', description: 'Simulates splicing a fake timestamp banner from another image.', riskLevel: 'CRITICAL', category: 'Forgery' }
     ];
 
     res.json(formatResponse(true, scenarios, 'Attack scenarios retrieved successfully'));
@@ -904,7 +879,7 @@ export const getAttackScenarios = async (req, res, next) => {
 
 export const simulateAttack = async (req, res, next) => {
   try {
-    const { scenarioId = 'ipfs_reupload_tampering', evidenceId } = req.body;
+    const { scenarioId = 'one_pixel_mod', evidenceId } = req.body;
 
     let evidence = null;
     if (evidenceId) {
@@ -927,149 +902,103 @@ export const simulateAttack = async (req, res, next) => {
     const origHash = evidence.fileHash || 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
     const origTx = evidence.transactionHash || '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01';
 
-    let simulationResult = {};
+    const mutatedCid = `QmMODIFIED_${scenarioId.toUpperCase()}_${origCid.slice(10, 24)}`;
+    const mutatedHash = crypto.createHash('sha256').update(mutatedCid + Date.now()).digest('hex');
+    const mutatedSize = (evidence.fileSize || 15728640) + 1172;
 
-    if (scenarioId === 'ipfs_reupload_tampering') {
-      const mutatedCid = `QmMODIFIED_${origCid.slice(10, 26)}_TAMPERED`;
-      const mutatedHash = `f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8`;
-      const mutatedSize = (evidence.fileSize || 15728640) + 1172;
+    const originalRecord = {
+      title: evidence.title,
+      originalFileName: evidence.originalFileName,
+      sha256: origHash,
+      ipfsCid: origCid,
+      transactionHash: origTx,
+      blockNumber: evidence.blockNumber || 48521000,
+      timestamp: evidence.createdAt || '2026-07-28T09:12:00.000Z',
+      uploader: evidence.metadata?.investigator || 'Agent Priya Sharma (Investigator)',
+      status: 'VERIFIED_ON_CHAIN'
+    };
 
-      simulationResult = {
-        scenarioId,
-        scenarioName: 'IPFS Content-Addressed File Modification & Re-upload',
-        status: 'TAMPERING_DETECTED',
-        trustScore: 12.5,
-        overallVerdict: 'REJECTED: IPFS CID Mutation & Polygon Blockchain SHA-256 Hash Mismatch',
-        timeline: [
-          {
-            step: 1,
-            time: '2026-07-28T09:12:00.000Z',
-            phase: 'ORIGINAL_UPLOAD',
-            title: 'Original Evidence Anchored on Polygon',
-            description: `File "${evidence.originalFileName}" anchored on Polygon Amoy Block #48521000. IPFS CID: ${origCid}`,
-            status: 'SUCCESS',
-            color: 'emerald'
-          },
-          {
-            step: 2,
-            time: new Date(Date.now() - 300000).toISOString(),
-            phase: 'ADVERSARY_DOWNLOAD',
-            title: 'Adversary Downloaded Evidence Artifact',
-            description: `User IP 192.168.1.105 downloaded "${evidence.originalFileName}" from IPFS Gateway.`,
-            status: 'INFO',
-            color: 'cyan'
-          },
-          {
-            step: 3,
-            time: new Date(Date.now() - 200000).toISOString(),
-            phase: 'TAMPERING_APPLIED',
-            title: 'File Content Mutated (1-Byte Edit)',
-            description: 'Adversary modified access log timestamp from 02:45 UTC to 03:15 UTC in file header.',
-            status: 'WARNING',
-            color: 'amber'
-          },
-          {
-            step: 4,
-            time: new Date(Date.now() - 100000).toISOString(),
-            phase: 'IPFS_REUPLOAD',
-            title: 'Modified File Uploaded to IPFS Network',
-            description: `Under IPFS Content-Addressing rules, bitwise mutation forced the generation of NEW CID: ${mutatedCid}. Original CID (${origCid}) remains untouched.`,
-            status: 'FAILED',
-            color: 'red'
-          },
-          {
-            step: 5,
-            time: new Date().toISOString(),
-            phase: 'BLOCKCHAIN_VERIFICATION',
-            title: 'Polygon Smart Contract Hash Audit Executed',
-            description: `SHA-256 checksum (${mutatedHash.slice(0, 16)}...) failed on-chain lookup against Polygon Amoy Block #48521000 (${origHash.slice(0, 16)}...). Verification REJECTED.`,
-            status: 'CRITICAL',
-            color: 'red'
-          }
-        ],
-        lineage: {
-          originalCid: origCid,
-          mutatedCid: mutatedCid,
-          originalHash: origHash,
-          mutatedHash: mutatedHash,
-          originalTx: origTx,
-          originalBlockNumber: 48521000
-        },
-        diffMatrix: [
-          { field: 'IPFS Content CID', original: origCid.slice(0, 24) + '...', current: mutatedCid.slice(0, 24) + '...', discrepancyStatus: 'NEW_CID_GENERATED_BY_IPFS' },
-          { field: 'SHA-256 Checksum', original: origHash.slice(0, 24) + '...', current: mutatedHash.slice(0, 24) + '...', discrepancyStatus: 'CRITICAL_HASH_MISMATCH' },
-          { field: 'File Size', original: `${(evidence.fileSize || 15728640)} bytes`, current: `${mutatedSize} bytes (+1,172 bytes)`, discrepancyStatus: 'BYTE_MUTATION_DETECTED' },
-          { field: 'EXIF Timestamp Clock', original: '2026-07-28 02:45:00 UTC', current: '2026-07-28 03:15:00 UTC (+30m offset)', discrepancyStatus: 'CLOCK_SHIFT_DETECTED' }
-        ],
-        aiAnalysis: {
-          confidenceScore: 99.2,
-          riskLevel: 'CRITICAL',
-          elaScore: 84.5,
-          findings: [
-            'IPFS Immutability: Mutated file generated new CID, proving content change',
-            'Polygon Blockchain Ledger: Hash check failed against block receipt',
-            'EXIF Header: 30 minute clock shift identified'
-          ]
-        }
-      };
+    const modifiedRecord = {
+      sha256: mutatedHash,
+      ipfsCid: mutatedCid,
+      modificationType: scenarioId.replace(/_/g, ' ').toUpperCase(),
+      modificationTime: new Date().toISOString(),
+      status: 'TAMPERED'
+    };
 
-    } else if (scenarioId === 'replay_tx_attack') {
-      simulationResult = {
-        scenarioId,
-        scenarioName: 'Blockchain Transaction Replay Attack',
-        status: 'REPLAY_ATTACK_BLOCKED',
-        trustScore: 45.0,
-        overallVerdict: 'BLOCKED: Polygon Contract Nonce & Transaction Replay Guard Intercepted Attack',
-        timeline: [
-          { step: 1, time: new Date(Date.now() - 300000).toISOString(), phase: 'TX_CAPTURED', title: 'Adversary Intercepted Valid Polygon Tx', description: `Captured Tx Hash ${origTx.slice(0, 18)}...`, status: 'INFO', color: 'cyan' },
-          { step: 2, time: new Date().toISOString(), phase: 'REPLAY_SUBMITTED', title: 'Replay Tx Submitted for Case SC-2026-99999', description: 'Attempted re-submitting valid signature under unauthorized case ID.', status: 'CRITICAL', color: 'red' },
-          { step: 3, time: new Date().toISOString(), phase: 'NONCE_CHECK', title: 'Smart Contract Nonce & Hash Mismatch', description: 'Replay rejected by SentinelChain.sol contract replay guard.', status: 'SUCCESS', color: 'emerald' }
-        ],
-        lineage: { originalTx: origTx, targetCaseId: 'SC-2026-99999' },
-        diffMatrix: [
-          { field: 'Transaction Nonce', original: '0x0042', current: '0x0042 (Duplicate Replay)', discrepancyStatus: 'NONCE_REUSED' },
-          { field: 'Target Case ID', original: evidence.metadata?.caseId || 'SC-2026-00001', current: 'SC-2026-99999 (Unauthorized Case)', discrepancyStatus: 'CASE_MISMATCH' }
-        ],
-        aiAnalysis: { confidenceScore: 99.8, riskLevel: 'HIGH', findings: ['Replay attack vector blocked by contract nonce state guard'] }
-      };
+    const verificationResult = {
+      matched: false,
+      integrityStatus: 'TAMPERED_EVIDENCE_DETECTED',
+      verdictTitle: '❌ TAMPERED EVIDENCE DETECTED',
+      reasons: [
+        `SHA-256 Hash Changed: ${origHash.slice(0, 16)}... → ${mutatedHash.slice(0, 16)}...`,
+        `IPFS CID Changed: ${origCid.slice(0, 16)}... → ${mutatedCid.slice(0, 16)}...`,
+        `Polygon Amoy Ledger Check: REJECTED (Hash mismatch on Block #48521000)`,
+        `Modified Pixels: 58,420 (2.84% divergence)`,
+        `Structural Similarity (SSIM): 94.8%`,
+        `AI Forensic Confidence: 99.4%`
+      ],
+      recommendation: 'REJECT AS ORIGINAL EVIDENCE (Content altered post-ingest)'
+    };
 
-    } else if (scenarioId === 'unauthorized_access') {
-      simulationResult = {
-        scenarioId,
-        scenarioName: 'Unauthorized Evidence Exfiltration & Access Escalation',
-        status: 'ACCESS_DENIED',
-        trustScore: 60.0,
-        overallVerdict: 'BLOCKED: Express RBAC Middleware Intercepted Unauthorized Action (403 Forbidden)',
-        timeline: [
-          { step: 1, time: new Date(Date.now() - 100000).toISOString(), phase: 'INTRUSION_ATTEMPT', title: 'Adversary Attempted Restricted Delete Endpoint', description: 'User role [viewer] attempted DELETE /api/evidence/:id without admin privilege.', status: 'WARNING', color: 'amber' },
-          { step: 2, time: new Date().toISOString(), phase: 'RBAC_ENFORCED', title: 'Express Authorization Middleware Intercepted', description: '403 Forbidden returned. IP 198.51.100.42 flagged.', status: 'SUCCESS', color: 'emerald' }
+    const forensicAnalysis = {
+      ssimPercentage: 94.8,
+      changedPixelsCount: 58420,
+      changedPixelsPercentage: 2.84,
+      riskScore: 94.2,
+      confidenceScore: 99.4,
+      riskLevel: 'CRITICAL',
+      aiModificationExplanation: {
+        modification_summary: `AI Forensic Explainer: Evidence file was subjected to '${scenarioId.replace(/_/g, ' ').toUpperCase()}' attack. 2.84% of pixel buffer was modified with 94.8% SSIM structural similarity index drop.`,
+        semantic_text_changes: [
+          `Original Text/Stamp: 'Security Badge Authorized'`,
+          `Modified Text/Stamp: 'Security Badge Removed / Timestamp Altered to +30m'`
         ],
-        lineage: { attemptUser: 'viewer@sentinelchain.ai', attemptedRoute: 'DELETE /api/evidence/:id' },
-        diffMatrix: [
-          { field: 'Required Role', original: 'admin', current: 'viewer (Unprivileged)', discrepancyStatus: 'RBAC_VIOLATION' }
+        visual_manipulations: [
+          `Region #1 (CRITICAL): Security Badge object removed via generative inpainting (1.85% area)`,
+          `Region #2 (HIGH): Synthetic timestamp overlay injected in upper quadrant (0.99% area)`
         ],
-        aiAnalysis: { confidenceScore: 100.0, riskLevel: 'HIGH', findings: ['Unauthorized API endpoint invocation intercepted by security gateway'] }
-      };
+        metadata_anomalies: [
+          `EXIF Camera Serial: 'CAM-SEC-8842-FRA' altered to 'STRIPPED / Photoshop'`,
+          `Creation Timestamp: '2026-07-28 09:12:00 UTC' shifted to '2026-07-28 09:42:00 UTC (+30m)'`
+        ],
+        forensic_legal_impact: `REJECT AS COURT EVIDENCE: Hash mismatch on Polygon Amoy Block #${evidence.blockNumber || 48521000}. Cryptographic chain of custody invalidated.`
+      },
+      boundingBoxes: [
+        { id: 1, bbox: [120, 80, 140, 60], areaPercentage: 1.85, severity: 'CRITICAL' },
+        { id: 2, bbox: [320, 240, 90, 45], areaPercentage: 0.99, severity: 'HIGH' }
+      ],
+      objectDiff: [
+        { action: 'REMOVED', label: 'Security Badge', confidence: 94.5 },
+        { action: 'ADDED', label: 'Synthetic Timestamp Overlay', confidence: 99.1 }
+      ],
+      metadataDiff: [
+        { field: 'EXIF Camera Serial', original: 'CAM-SEC-8842-FRA', modified: 'STRIPPED / Photoshop', status: 'DISCREPANCY' },
+        { field: 'Creation Timestamp', original: '2026-07-28 09:12:00 UTC', modified: '2026-07-28 09:42:00 UTC (+30m)', status: 'CLOCK_SHIFT' }
+      ],
+      findings: [
+        'IPFS Immutability Rule: Bitwise change forced generation of NEW CID, proving content modification',
+        'Polygon Blockchain Ledger: On-chain SHA-256 lookup failed against block receipt',
+        'Error Level Analysis (ELA): Compression grid anomaly detected in upper-left quadrant'
+      ]
+    };
 
-    } else {
-      simulationResult = {
-        scenarioId,
-        scenarioName: 'Metadata EXIF Clock Shift & Software Tampering',
-        status: 'METADATA_TAMPERING_DETECTED',
-        trustScore: 35.0,
-        overallVerdict: 'FLAGGED: EXIF Clock Offset & Adobe Photoshop Editing Signature Detected',
-        timeline: [
-          { step: 1, time: new Date(Date.now() - 200000).toISOString(), phase: 'EXIF_EDIT', title: 'EXIF Headers Modified', description: 'Camera model erased and clock shifted by +2 hours.', status: 'WARNING', color: 'amber' },
-          { step: 2, time: new Date().toISOString(), phase: 'METADATA_AUDIT', title: 'SentinelAI Metadata Consistency Check', description: 'Flagged suspicious editing tool tag "Adobe Photoshop 2026".', status: 'CRITICAL', color: 'red' }
-        ],
-        lineage: { originalSoftware: 'Original Camera Firmware', modifiedSoftware: 'Adobe Photoshop 2026' },
-        diffMatrix: [
-          { field: 'EXIF Software Tag', original: 'Original Firmware', current: 'Adobe Photoshop 2026', discrepancyStatus: 'EDITING_SOFTWARE_DETECTED' },
-          { field: 'Creation Timestamp', original: '2026-07-28 07:30:00 UTC', current: '2026-07-28 09:30:00 UTC (+2h offset)', discrepancyStatus: 'CLOCK_SHIFT' }
-        ],
-        aiAnalysis: { confidenceScore: 97.4, riskLevel: 'HIGH', findings: ['Editing software signature detected in image metadata headers'] }
-      };
-    }
+    const simulationResult = {
+      scenarioId,
+      scenarioName: scenarioId.replace(/_/g, ' ').toUpperCase(),
+      trustScore: 12.4,
+      originalRecord,
+      modifiedRecord,
+      verificationResult,
+      forensicAnalysis,
+      timeline: [
+        { step: 1, time: originalRecord.timestamp, phase: 'ORIGINAL_INGEST', title: 'Original Evidence Ingested & Anchored', description: `File anchored on Polygon Block #${originalRecord.blockNumber}. CID: ${origCid}`, status: 'SUCCESS' },
+        { step: 2, time: new Date(Date.now() - 300000).toISOString(), phase: 'ADVERSARY_DOWNLOAD', title: 'Adversary Downloaded Evidence File', description: 'File buffer downloaded from Pinata IPFS Gateway node.', status: 'INFO' },
+        { step: 3, time: new Date(Date.now() - 200000).toISOString(), phase: 'ATTACK_APPLIED', title: `Tampering Attack Executed (${scenarioId})`, description: 'Modified bytes in evidence buffer.', status: 'WARNING' },
+        { step: 4, time: new Date(Date.now() - 100000).toISOString(), phase: 'IPFS_REUPLOAD', title: 'Modified File Uploaded to IPFS Network', description: `IPFS Content Addressing generated NEW CID: ${mutatedCid}. Original CID (${origCid}) remains untouched.`, status: 'FAILED' },
+        { step: 5, time: new Date().toISOString(), phase: 'BLOCKCHAIN_AUDIT', title: 'Polygon Blockchain Verification Executed', description: 'SHA-256 hash mismatch. Verification REJECTED.', status: 'CRITICAL' }
+      ]
+    };
 
     recordAuditLog({
       action: 'EVIDENCE_TAMPERING_DETECTED',
@@ -1081,8 +1010,10 @@ export const simulateAttack = async (req, res, next) => {
       details: {
         attackSimulation: true,
         scenarioId,
+        mutatedCid,
+        mutatedHash,
         trustScore: simulationResult.trustScore,
-        verdict: simulationResult.overallVerdict
+        verdict: verificationResult.verdictTitle
       },
       ipAddress: req.ip || '127.0.0.1'
     }).catch(() => {});
