@@ -1,0 +1,142 @@
+# ============================================================================
+# SentinelChain — Docker Compose Full Stack
+# AI-Powered Blockchain Digital Evidence Management Platform
+# ============================================================================
+# Usage:
+#   docker compose up --build          (first run — builds + starts all)
+#   docker compose up -d               (detached mode)
+#   docker compose down                (stop all)
+#   docker compose down -v             (stop + remove volumes)
+#   docker compose logs -f server      (tail logs for one service)
+# ============================================================================
+
+services:
+
+  # ── PostgreSQL 16 Database ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentinelchain-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sentinelchain
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentinelchain_db_password_2026}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d sentinelchain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - sentinelchain-net
+
+  # ── Express API Server (Node.js) ──
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: sentinelchain-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 5000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-sentinelchain_db_password_2026}@postgres:5432/sentinelchain
+      JWT_SECRET: ${JWT_SECRET:-572a834048c9cb07348758263a98ed8781a284d629b6a878c30591e73132c6a8c705fbffa85414e35676d9b8925ba005802dc7f1ae438dd7afb23b5e39f961d4}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PRIVATE_KEY: ${PRIVATE_KEY:-}
+      POLYGON_AMOY_RPC_URL: ${POLYGON_AMOY_RPC_URL:-https://rpc-amoy.polygon.technology/}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-0x1111111111111111111111111111111111111111}
+      PINATA_API_KEY: ${PINATA_API_KEY:-}
+      PINATA_SECRET_KEY: ${PINATA_SECRET_KEY:-}
+      PINATA_JWT: ${PINATA_JWT:-}
+      PINATA_GATEWAY: ${PINATA_GATEWAY:-https://gateway.pinata.cloud/ipfs/}
+      AI_SERVICE_URL: http://ai-service:8000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    ports:
+      - "${API_PORT:-5000}:5000"
+    volumes:
+      - evidence_uploads:/app/uploads
+      - evidence_store:/app/src/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/evidence"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - sentinelchain-net
+
+  # ── Python AI Forensics Service (FastAPI) ──
+  ai-service:
+    build:
+      context: ./python-ai
+      dockerfile: Dockerfile
+    container_name: sentinelchain-ai
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MODEL_NAME: ${AI_MODEL_NAME:-gpt-4o}
+      DEBUG: ${AI_DEBUG:-false}
+      SERVICE_PORT: 8000
+    ports:
+      - "${AI_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - sentinelchain-net
+
+  # ── React Client (Vite build → Nginx) ──
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+        VITE_CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-0x1111111111111111111111111111111111111111}
+        VITE_CHAIN_ID: ${CHAIN_ID:-80002}
+    container_name: sentinelchain-client
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "${CLIENT_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - sentinelchain-net
+
+# ── Persistent Volumes ──
+volumes:
+  postgres_data:
+    driver: local
+    name: sentinelchain-postgres-data
+  evidence_uploads:
+    driver: local
+    name: sentinelchain-uploads
+  evidence_store:
+    driver: local
+    name: sentinelchain-evidence-store
+
+# ── Internal Network ──
+networks:
+  sentinelchain-net:
+    driver: bridge
+    name: sentinelchain-network
