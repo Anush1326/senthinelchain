@@ -22,11 +22,25 @@ const initialStore = [
     transactionHash: '0xabc123def456789abc123def456789abc123def456789abc123def456789abcd01',
     blockNumber: 48521000,
     status: 'verified',
+    riskScore: 12,
+    riskLevel: 'LOW',
     fileSize: 15728640,
     fileType: 'text/plain',
     originalFileName: 'auth_audit.log',
     metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', department: 'Digital Forensics Unit', priority: 'high' },
-    createdAt: '2026-07-28T09:12:00.000Z'
+    createdAt: '2026-07-28T09:12:00.000Z',
+    tamperingDetails: {
+      isTampered: false,
+      tamperingSummary: 'EVIDENCE_INTACT: SHA-256 hash matches Ethereum block record 100%. No byte alterations detected.',
+      anchoredHash: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+      scannedHash: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+      changedFields: [],
+      aiForensicReport: {
+        confidenceScore: 99.4,
+        elaScore: 1.2,
+        alteredRegions: []
+      }
+    }
   },
   {
     id: 'e0000002-0000-0000-0000-000000000002',
@@ -38,11 +52,82 @@ const initialStore = [
     transactionHash: '0xdef456789abc123def456789abc123def456789abc123def456789abc123def402',
     blockNumber: 48521050,
     status: 'verified',
+    riskScore: 18,
+    riskLevel: 'LOW',
     fileSize: 52428800,
     fileType: 'application/sql',
     originalFileName: 'database_export.sql',
     metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', department: 'Digital Forensics Unit', priority: 'medium' },
-    createdAt: '2026-07-28T08:45:00.000Z'
+    createdAt: '2026-07-28T08:45:00.000Z',
+    tamperingDetails: {
+      isTampered: false,
+      tamperingSummary: 'EVIDENCE_INTACT: Verified database backup file. Zero checksum deviations.',
+      anchoredHash: 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3',
+      scannedHash: 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3',
+      changedFields: [],
+      aiForensicReport: {
+        confidenceScore: 98.9,
+        elaScore: 2.5,
+        alteredRegions: []
+      }
+    }
+  },
+  {
+    id: 'e0000003-0000-0000-0000-000000000003',
+    title: 'CCTV Camera 4 Screenshot – Server Room',
+    description: 'Surveillance photo snapshot during security breach incident',
+    category: 'image',
+    fileHash: 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+    ipfsHash: 'QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ',
+    status: 'flagged',
+    riskScore: 92,
+    riskLevel: 'CRITICAL',
+    fileSize: 2202009,
+    fileType: 'image/png',
+    originalFileName: 'cctv_frame_04.png',
+    metadata: { caseId: 'SC-2026-00001', investigator: 'Agent Priya Sharma', department: 'Cyber Intelligence Division', priority: 'critical' },
+    createdAt: '2026-07-28T07:30:00.000Z',
+    tamperingDetails: {
+      isTampered: true,
+      tamperingSummary: 'CRITICAL_TAMPERING_DETECTED: SHA-256 hash mismatch and AI Error Level Analysis pixel manipulation flagged in top-left timestamp area.',
+      anchoredHash: 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+      scannedHash: 'f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8',
+      changedFields: [
+        {
+          field: 'SHA-256 Hash Signature',
+          original: 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6...',
+          current: 'f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6...',
+          discrepancyStatus: 'CRITICAL_MISMATCH'
+        },
+        {
+          field: 'File Byte Length',
+          original: '2,202,009 bytes',
+          current: '2,203,181 bytes (+1,172 bytes appended)',
+          discrepancyStatus: 'MUTATED_LENGTH'
+        },
+        {
+          field: 'EXIF Creation Clock',
+          original: '2026-07-28 07:30:00 UTC',
+          current: '2026-07-28 09:14:02 UTC (+1h 44m offset)',
+          discrepancyStatus: 'TIMESTAMPS_ALTERED'
+        },
+        {
+          field: 'Camera Sensor Serial',
+          original: 'CAM-SEC-8842',
+          current: '[STRIPPED / UNKNOWN]',
+          discrepancyStatus: 'EXIF_DATA_STRIPPED'
+        }
+      ],
+      aiForensicReport: {
+        confidenceScore: 96.8,
+        elaScore: 88.4,
+        alteredRegions: [
+          'Pixel manipulation detected in Top-Left quadrant (Frames 120-145)',
+          'Compression artifact boundary mismatch detected',
+          'Timestamp overlay font altered from original camera stream'
+        ]
+      }
+    }
   }
 ];
 

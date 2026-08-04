@@ -24,7 +24,9 @@ import {
   Printer,
   FileDown
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
+import RiskScoreBadge from '../components/RiskScoreBadge';
+import TamperingDiffCard from '../components/TamperingDiffCard';
 import api from '../services/api';
 
 const mockDetailFallbacks = {
@@ -278,6 +280,11 @@ const EvidenceDetail = () => {
                 <AlertTriangle size={14} /> AI Flagged
               </span>
             )}
+            <RiskScoreBadge 
+              score={ev.riskScore !== undefined ? ev.riskScore : (ev.status === 'flagged' ? 92 : ev.status === 'pending' ? 42 : 12)} 
+              level={ev.riskLevel} 
+              size="md" 
+            />
           </div>
           <p className="text-slate-400 text-xs mt-1 font-mono">
             ID: {ev.id} • Case: {ev.metadata?.caseId || 'SC-2026-00001'}
@@ -303,7 +310,7 @@ const EvidenceDetail = () => {
           </button>
           <Link
             to="/verify"
-            className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white font-medium px-4 py-2.5 rounded-xl shadow-lg border border-primary-500/40 text-sm transition-all"
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-medium px-4 py-2.5 rounded-xl shadow-lg border border-cyan-400/40 text-sm transition-all"
           >
             <Shield size={16} /> Re-verify Hash
           </Link>
@@ -314,6 +321,9 @@ const EvidenceDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Metadata & AI Scan */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Detailed Tampering Forensic Analysis Card */}
+          <TamperingDiffCard evidence={ev} />
+
           {/* Metadata Card */}
           <div className="glassmorphism rounded-2xl p-6 border border-slate-700/50 space-y-6 shadow-xl">
             <h3 className="text-base font-bold text-slate-100 flex items-center justify-between border-b border-slate-800 pb-3">

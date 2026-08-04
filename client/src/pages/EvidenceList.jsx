@@ -27,9 +27,13 @@ import {
   ChevronRight,
   ArrowUpDown,
   RotateCcw,
-  SlidersHorizontal
+  SlidersHorizontal,
+  FileDiff,
+  X
 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
+import RiskScoreBadge from '../components/RiskScoreBadge';
+import TamperingDiffCard from '../components/TamperingDiffCard';
 import api from '../services/api';
 
 const mockEvidenceList = [
@@ -110,6 +114,7 @@ const EvidenceList = () => {
   const [evidenceItems, setEvidenceItems] = useState(mockEvidenceList);
   const [loading, setLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [selectedDiffEvidence, setSelectedDiffEvidence] = useState(null);
 
   // Search & Filter State
   const [filters, setFilters] = useState({
@@ -430,6 +435,7 @@ const EvidenceList = () => {
             <thead>
               <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-900/40">
                 <th className="py-3.5 px-4">Evidence Title & Case</th>
+                <th className="py-3.5 px-4">Risk Score</th>
                 <th className="py-3.5 px-4">Category</th>
                 <th className="py-3.5 px-4">Investigator & Department</th>
                 <th className="py-3.5 px-4">SHA-256 Hash</th>
@@ -441,98 +447,118 @@ const EvidenceList = () => {
             <tbody className="divide-y divide-slate-800/60 text-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 size={24} className="animate-spin mx-auto mb-2 text-primary-400" />
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    <Loader2 size={24} className="animate-spin mx-auto mb-2 text-cyan-400" />
                     Searching digital evidence locker...
                   </td>
                 </tr>
               ) : evidenceItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     No evidence records found matching your advanced search criteria.
                   </td>
                 </tr>
               ) : (
-                evidenceItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition-colors group">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-sentinel-dark-800 border border-slate-700 shrink-0">
-                          <CategoryIcon category={item.category} />
+                evidenceItems.map((item) => {
+                  const score = item.riskScore !== undefined ? item.riskScore : (item.status === 'flagged' ? 92 : item.status === 'pending' ? 42 : 12);
+                  const isTampered = item.status === 'flagged' || item.status === 'tampered' || score > 60;
+                  
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors group">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 shrink-0">
+                            <CategoryIcon category={item.category} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-200 group-hover:text-cyan-400 transition-colors">
+                              {item.title}
+                            </p>
+                            <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                              Case: {item.metadata?.caseId || item.caseId || 'SC-2026-00001'} • ID: {item.id?.slice(0, 8)}
+                            </p>
+                          </div>
                         </div>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <RiskScoreBadge score={score} level={item.riskLevel} showMeter={false} size="sm" />
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <span className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-md text-[11px] font-medium border border-slate-700 capitalize">
+                          {(item.category || 'document').replace('_', ' ')}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-4">
                         <div>
-                          <p className="font-semibold text-slate-200 group-hover:text-primary-400 transition-colors">
-                            {item.title}
-                          </p>
-                          <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                            Case: {item.metadata?.caseId || item.caseId || 'SC-2026-00001'} • ID: {item.id?.slice(0, 8)}
-                          </p>
+                          <p className="text-slate-300 font-medium">{item.metadata?.investigator || 'Agent Priya Sharma'}</p>
+                          <p className="text-[10px] text-slate-500">{item.metadata?.department || 'Digital Forensics Unit'}</p>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="py-4 px-4">
-                      <span className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded-md text-[11px] font-medium border border-slate-700 capitalize">
-                        {(item.category || 'document').replace('_', ' ')}
-                      </span>
-                    </td>
+                      <td className="py-4 px-4 font-mono">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-400 text-[11px] bg-slate-900 px-2 py-1 rounded border border-slate-700">
+                            {item.fileHash ? `${item.fileHash.slice(0, 8)}...${item.fileHash.slice(-6)}` : 'N/A'}
+                          </span>
+                          {item.fileHash && (
+                            <button
+                              onClick={() => copyToClipboard(item.fileHash)}
+                              className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+                              title="Copy full SHA-256 hash"
+                            >
+                              {copiedHash === item.fileHash ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                            </button>
+                          )}
+                        </div>
+                      </td>
 
-                    <td className="py-4 px-4">
-                      <div>
-                        <p className="text-slate-300 font-medium">{item.metadata?.investigator || 'Agent Priya Sharma'}</p>
-                        <p className="text-[10px] text-slate-500">{item.metadata?.department || 'Digital Forensics Unit'}</p>
-                      </div>
-                    </td>
-
-                    <td className="py-4 px-4 font-mono">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-400 text-[11px] bg-sentinel-dark-800 px-2 py-1 rounded border border-slate-700">
-                          {item.fileHash ? `${item.fileHash.slice(0, 8)}...${item.fileHash.slice(-6)}` : 'N/A'}
-                        </span>
-                        {item.fileHash && (
-                          <button
-                            onClick={() => copyToClipboard(item.fileHash)}
-                            className="text-slate-500 hover:text-slate-300 transition-colors p-1"
-                            title="Copy full SHA-256 hash"
-                          >
-                            {copiedHash === item.fileHash ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                          </button>
+                      <td className="py-4 px-4">
+                        {item.status === 'verified' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full text-[11px] font-medium">
+                            <CheckCircle2 size={12} /> Verified
+                          </span>
                         )}
-                      </div>
-                    </td>
+                        {item.status === 'pending' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full text-[11px] font-medium">
+                            <Clock size={12} /> Pending
+                          </span>
+                        )}
+                        {item.status === 'flagged' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/15 text-red-400 border border-red-500/30 rounded-full text-[11px] font-medium animate-pulse">
+                            <AlertTriangle size={12} /> Flagged
+                          </span>
+                        )}
+                      </td>
 
-                    <td className="py-4 px-4">
-                      {item.status === 'verified' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full text-[11px] font-medium">
-                          <CheckCircle2 size={12} /> Verified
-                        </span>
-                      )}
-                      {item.status === 'pending' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-full text-[11px] font-medium">
-                          <Clock size={12} /> Pending
-                        </span>
-                      )}
-                      {item.status === 'flagged' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/15 text-red-400 border border-red-500/30 rounded-full text-[11px] font-medium animate-pulse">
-                          <AlertTriangle size={12} /> Flagged
-                        </span>
-                      )}
-                    </td>
+                      <td className="py-4 px-4 font-mono text-slate-400">
+                        {formatBytes(item.fileSize)}
+                      </td>
 
-                    <td className="py-4 px-4 font-mono text-slate-400">
-                      {formatBytes(item.fileSize)}
-                    </td>
-
-                    <td className="py-4 px-4 text-right">
-                      <Link
-                        to={`/evidence/${item.id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs border border-slate-700 transition-all"
-                      >
-                        <Eye size={14} /> View Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {isTampered && (
+                            <button
+                              onClick={() => setSelectedDiffEvidence(item)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 font-mono font-bold rounded-lg text-xs border border-red-500/40 transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                              title="Inspect Tampering Changes"
+                            >
+                              <FileDiff size={14} /> Diff Details
+                            </button>
+                          )}
+                          <Link
+                            to={`/evidence/${item.id}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs border border-slate-700 transition-all"
+                          >
+                            <Eye size={14} /> View Details
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -589,6 +615,22 @@ const EvidenceList = () => {
           </div>
         </div>
       </div>
+
+      {/* Tampering Change Details Modal */}
+      {selectedDiffEvidence && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => setSelectedDiffEvidence(null)}
+              className="absolute top-4 right-4 z-20 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-900 border border-slate-700"
+            >
+              <X size={18} />
+            </button>
+
+            <TamperingDiffCard evidence={selectedDiffEvidence} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
