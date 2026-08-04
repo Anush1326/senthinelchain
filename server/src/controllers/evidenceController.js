@@ -851,27 +851,118 @@ End of Forensic Evidence Package • SentinelChain AI Security System
   }
 };
 
+export const ATTACK_SCENARIOS_LIST = [
+  // 💥 DESTROYS (Permanent erasure of evidence data/metadata)
+  { id: 'exif_removal', name: 'Complete EXIF Metadata Stripping', description: 'Destroys camera serial number, creation timestamp, and GPS location headers.', actionType: 'DESTROYS', riskLevel: 'HIGH', category: 'Metadata Erasure' },
+  { id: 'watermark_erasure', name: 'Digital Seal & Watermark Erasure', description: 'Destroys authentic digital security seals and forensic watermark signatures.', actionType: 'DESTROYS', riskLevel: 'CRITICAL', category: 'Security Erasure' },
+  { id: 'noise_injection', name: 'High-Frequency Noise Injection', description: 'Destroys fine forensic pixel details by injecting heavy Gaussian noise variance.', actionType: 'DESTROYS', riskLevel: 'HIGH', category: 'Pixel Destruction' },
+  { id: 'file_truncation', name: 'Evidence Payload Byte Truncation', description: 'Destroys evidence tail bytes to cause file corruption and hash divergence.', actionType: 'DESTROYS', riskLevel: 'CRITICAL', category: 'Payload Destruction' },
+
+  // ✏️ ALTERS (Modifying or fabricating evidence content)
+  { id: 'one_pixel_mod', name: '1-Pixel RGB Alteration Attack', description: 'Alters a single pixel color value to force bitwise SHA-256 hash divergence.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Pixel Editing' },
+  { id: 'pdf_text_mod', name: 'Document Text & Amount Alteration', description: 'Alters monetary amounts, dates, or names in document evidence text.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Document Forgery' },
+  { id: 'fake_metadata', name: 'Synthetic EXIF Header Injection', description: 'Alters creation timestamp clock (+30m offset) and injects fake software tags.', actionType: 'ALTERS', riskLevel: 'HIGH', category: 'Header Manipulation' },
+  { id: 'deepfake', name: 'Deepfake Synthetic Face Swap', description: 'Alters facial features of individuals in evidence using AI synthetic generation.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'AI Synthetic' },
+  { id: 'copy_move', name: 'Copy-Move Region Cloning Attack', description: 'Alters evidence by duplicating/cloning keypoint regions within the frame.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Cloning Forgery' },
+  { id: 'splicing', name: 'Image Splicing & Overlay Attack', description: 'Alters original frame by splicing timestamp banners or external elements.', actionType: 'ALTERS', riskLevel: 'CRITICAL', category: 'Splicing Forgery' },
+  { id: 'brightness_contrast', name: 'Brightness & Exposure Shift (+25%)', description: 'Alters gamma exposure and contrast curves to distort visual lighting context.', actionType: 'ALTERS', riskLevel: 'MEDIUM', category: 'Filter Shift' },
+
+  // 🙈 HIDES (Obscuring, masking, or concealing evidence details)
+  { id: 'object_removal', name: 'Inpainting Object / Person Removal', description: 'Hides suspects, weapons, or security badges from CCTV using generative inpainting.', actionType: 'HIDES', riskLevel: 'CRITICAL', category: 'Content Masking' },
+  { id: 'face_blur', name: 'Facial Obfuscation & Gaussian Blur', description: 'Hides suspect facial features behind blur patches to prevent identity verification.', actionType: 'HIDES', riskLevel: 'HIGH', category: 'Identity Obfuscation' },
+  { id: 'cropping', name: 'Border Pixel Cropping (-5%)', description: 'Hides peripheral evidence context by cropping outer image boundaries.', actionType: 'HIDES', riskLevel: 'HIGH', category: 'Spatial Masking' },
+  { id: 'badge_blackout', name: 'Credential & License Plate Blackout', description: 'Hides vehicle license plates, ID badges, or officer credentials with black masks.', actionType: 'HIDES', riskLevel: 'CRITICAL', category: 'Credential Masking' }
+];
+
 export const getAttackScenarios = async (req, res, next) => {
   try {
-    const scenarios = [
-      { id: 'one_pixel_mod', name: '1-Pixel RGB Alteration Attack', description: 'Simulates modifying a single pixel color value. Demonstrates IPFS CID change and SHA-256 hash divergence on 1-bit edit.', riskLevel: 'CRITICAL', category: 'Pixel Tampering' },
-      { id: 'object_removal', name: 'Inpainting Object / Stamp Removal', description: 'Simulates removing a person or object from CCTV evidence using generative inpainting.', riskLevel: 'CRITICAL', category: 'Forgery' },
-      { id: 'object_addition', name: 'Unauthorized Object Insertion', description: 'Simulates inserting a weapon or vehicle into the original evidence frame.', riskLevel: 'CRITICAL', category: 'Forgery' },
-      { id: 'face_blur', name: 'Facial Anonymization & Blur Tampering', description: 'Simulates applying Gaussian blur over suspect face region to obfuscate identity.', riskLevel: 'HIGH', category: 'Anonymization' },
-      { id: 'cropping', name: 'Border Pixel Cropping (-5%)', description: 'Simulates cropping frame boundaries to remove peripheral evidence details.', riskLevel: 'HIGH', category: 'Geometry' },
-      { id: 'rotate_image', name: 'Geometric Rotation & Shear', description: 'Simulates rotating frame 90 degrees to bypass automated aspect ratio detectors.', riskLevel: 'MEDIUM', category: 'Geometry' },
-      { id: 'brightness_contrast', name: 'Brightness & Contrast Manipulation', description: 'Simulates adjusting gamma exposure to hide dark background details.', riskLevel: 'MEDIUM', category: 'Filter' },
-      { id: 'jpeg_recompression', label: 'JPEG Re-compression (Quality 70)', description: 'Simulates re-saving image at reduced quality 70, introducing ELA grid artifacts.', riskLevel: 'HIGH', category: 'Compression' },
-      { id: 'exif_removal', name: 'Complete EXIF Metadata Stripping', description: 'Simulates erasing camera serial number, creation timestamp, and GPS coordinates.', riskLevel: 'HIGH', category: 'Metadata' },
-      { id: 'fake_metadata', name: 'Synthetic EXIF Header Injection', description: 'Simulates injecting fake creation clock timestamp and Photoshop software tag.', riskLevel: 'HIGH', category: 'Metadata' },
-      { id: 'png_to_jpg', name: 'Format Transcode (PNG to JPEG)', description: 'Simulates re-encoding lossless PNG to lossy JPEG buffer.', riskLevel: 'MEDIUM', category: 'Format Transcode' },
-      { id: 'resize_image', name: 'Bicubic Image Rescaling', description: 'Simulates downscaling image resolution from 4K to 1080p.', riskLevel: 'MEDIUM', category: 'Geometry' },
-      { id: 'watermark_add_remove', name: 'Watermark Addition & Removal', description: 'Simulates stamping or erasing copyright watermark logos.', riskLevel: 'HIGH', category: 'Forgery' },
-      { id: 'copy_move', name: 'Copy-Move Region Cloning Attack', description: 'Simulates cloning keypoint patches within the same image.', riskLevel: 'CRITICAL', category: 'Forgery' },
-      { id: 'splicing', name: 'Image Splicing & Overlay Attack', description: 'Simulates splicing a fake timestamp banner from another image.', riskLevel: 'CRITICAL', category: 'Forgery' }
-    ];
+    res.json(formatResponse(true, ATTACK_SCENARIOS_LIST, 'Attack scenarios retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
 
-    res.json(formatResponse(true, scenarios, 'Attack scenarios retrieved successfully'));
+export const attackHistoryStore = [
+  {
+    id: 'atk-001-2026',
+    scenarioId: 'object_removal',
+    scenarioName: 'Inpainting Object / Stamp Removal Attack',
+    evidenceId: 'e0000003-0000-0000-0000-000000000003',
+    evidenceTitle: 'CCTV Camera 4 Screenshot – Server Room',
+    originalIpfsCid: 'QmW2WQi7j6c7UgJTarActp7tDNikE4B2qXtFCfLPdsgaTQ',
+    mutatedIpfsCid: 'QmMODIFIED_OBJECT_REMOVAL_j6c7UgJTarActp',
+    originalSha256: 'c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+    mutatedSha256: 'f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8d7c6b5a4f9e8',
+    trustScore: 12.4,
+    riskLevel: 'CRITICAL',
+    verdict: '❌ TAMPERED EVIDENCE DETECTED',
+    aiSummary: 'AI Forensic Explainer: Inpainting detected in Security Badge region. SHA-256 mismatch on Polygon Amoy Block #48521000.',
+    timestamp: '2026-08-04T22:15:00.000Z'
+  },
+  {
+    id: 'atk-002-2026',
+    scenarioId: 'one_pixel_mod',
+    scenarioName: '1-Pixel RGB Alteration Attack',
+    evidenceId: 'e0000001-0000-0000-0000-000000000001',
+    evidenceTitle: 'Server Incident Access Logs – June 2026',
+    originalIpfsCid: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+    mutatedIpfsCid: 'QmMODIFIED_ONE_PIXEL_MOD_zv5CZsnA625s3X',
+    originalSha256: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2',
+    mutatedSha256: '7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d',
+    trustScore: 35.8,
+    riskLevel: 'HIGH',
+    verdict: '❌ TAMPERED EVIDENCE DETECTED',
+    aiSummary: 'AI Forensic Explainer: Single pixel RGB bit flip caused complete cryptographic hash divergence (Avalanche Effect).',
+    timestamp: '2026-08-04T21:45:00.000Z'
+  },
+  {
+    id: 'atk-003-2026',
+    scenarioId: 'exif_removal',
+    scenarioName: 'Complete EXIF Metadata Stripping',
+    evidenceId: 'e0000002-0000-0000-0000-000000000002',
+    evidenceTitle: 'PostgreSQL Forensic Dump File',
+    originalIpfsCid: 'QmT5NvUtoM5nWFfrQdVrFtvGfKFmG7AHE8P34isapyhCxX',
+    mutatedIpfsCid: 'QmMODIFIED_EXIF_REMOVAL_toM5nWFfrQdVrF',
+    originalSha256: 'b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3',
+    mutatedSha256: '4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f',
+    trustScore: 42.0,
+    riskLevel: 'HIGH',
+    verdict: '❌ TAMPERED EVIDENCE DETECTED',
+    aiSummary: 'AI Forensic Explainer: Camera serial & creation clock headers stripped. Hash mismatch registered on-chain.',
+    timestamp: '2026-08-04T20:30:00.000Z'
+  }
+];
+
+export const getAttackHistory = async (req, res, next) => {
+  try {
+    const { scenarioId, search } = req.query;
+    let list = [...attackHistoryStore];
+
+    if (scenarioId && scenarioId !== 'all') {
+      list = list.filter(item => item.scenarioId === scenarioId);
+    }
+
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      list = list.filter(item =>
+        item.scenarioName.toLowerCase().includes(q) ||
+        item.evidenceTitle.toLowerCase().includes(q) ||
+        item.originalIpfsCid.toLowerCase().includes(q) ||
+        item.mutatedIpfsCid.toLowerCase().includes(q) ||
+        item.aiSummary.toLowerCase().includes(q)
+      );
+    }
+
+    res.json(formatResponse(true, { total: list.length, data: list }, 'Attack history retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const clearAttackHistory = async (req, res, next) => {
+  try {
+    attackHistoryStore.length = 0;
+    res.json(formatResponse(true, { total: 0, data: [] }, 'Attack history cleared successfully'));
   } catch (error) {
     next(error);
   }
@@ -999,6 +1090,27 @@ export const simulateAttack = async (req, res, next) => {
         { step: 5, time: new Date().toISOString(), phase: 'BLOCKCHAIN_AUDIT', title: 'Polygon Blockchain Verification Executed', description: 'SHA-256 hash mismatch. Verification REJECTED.', status: 'CRITICAL' }
       ]
     };
+
+    const matchingScenario = ATTACK_SCENARIOS_LIST.find(s => s.id === scenarioId);
+    const actionType = matchingScenario?.actionType || 'ALTERS';
+
+    attackHistoryStore.unshift({
+      id: `atk-${Date.now()}`,
+      scenarioId,
+      scenarioName: scenarioId.replace(/_/g, ' ').toUpperCase(),
+      actionType,
+      evidenceId: evidence.id,
+      evidenceTitle: evidence.title,
+      originalIpfsCid: origCid,
+      mutatedIpfsCid: mutatedCid,
+      originalSha256: origHash,
+      mutatedSha256: mutatedHash,
+      trustScore: simulationResult.trustScore,
+      riskLevel: 'CRITICAL',
+      verdict: verificationResult.verdictTitle,
+      aiSummary: forensicAnalysis.aiModificationExplanation.modification_summary,
+      timestamp: new Date().toISOString()
+    });
 
     recordAuditLog({
       action: 'EVIDENCE_TAMPERING_DETECTED',

@@ -36,48 +36,71 @@ import TamperingDiffCard from '../components/TamperingDiffCard';
 import api from '../services/api';
 
 const ATTACK_VECTORS = [
-  { id: 'one_pixel_mod', label: '1-Pixel RGB Alteration Attack', category: 'Pixel Tampering' },
-  { id: 'object_removal', label: 'Inpainting Object / Stamp Removal', category: 'Forgery' },
-  { id: 'object_addition', label: 'Unauthorized Object Insertion', category: 'Forgery' },
-  { id: 'face_blur', label: 'Facial Anonymization & Blur Tampering', category: 'Anonymization' },
-  { id: 'cropping', label: 'Border Pixel Cropping (-5%)', category: 'Geometry' },
-  { id: 'rotate_image', label: 'Geometric Rotation & Shear (90°)', category: 'Geometry' },
-  { id: 'brightness_contrast', label: 'Brightness & Contrast Manipulation', category: 'Filter' },
-  { id: 'jpeg_recompression', label: 'JPEG Re-compression (Quality 70)', category: 'Compression' },
-  { id: 'exif_removal', label: 'Complete EXIF Metadata Stripping', category: 'Metadata' },
-  { id: 'fake_metadata', label: 'Synthetic EXIF Header Injection', category: 'Metadata' },
-  { id: 'png_to_jpg', label: 'Format Transcode (PNG to JPEG)', category: 'Format Transcode' },
-  { id: 'resize_image', label: 'Bicubic Image Rescaling (4K to 1080p)', category: 'Geometry' },
-  { id: 'watermark_add_remove', label: 'Watermark Addition / Removal', category: 'Forgery' },
-  { id: 'copy_move', label: 'Copy-Move Region Cloning Attack', category: 'Forgery' },
-  { id: 'splicing', label: 'Image Splicing & Overlay Attack', category: 'Forgery' }
+  // 💥 DESTROYS (Permanent erasure of evidence data/metadata)
+  { id: 'exif_removal', label: 'Complete EXIF Metadata Stripping', actionType: 'DESTROYS', category: 'Metadata Erasure', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
+  { id: 'watermark_erasure', label: 'Digital Seal & Watermark Erasure', actionType: 'DESTROYS', category: 'Security Erasure', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
+  { id: 'noise_injection', label: 'High-Frequency Noise Injection', actionType: 'DESTROYS', category: 'Pixel Destruction', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
+  { id: 'file_truncation', label: 'Evidence Payload Byte Truncation', actionType: 'DESTROYS', category: 'Payload Destruction', badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40' },
+
+  // ✏️ ALTERS (Modifying or fabricating evidence content)
+  { id: 'one_pixel_mod', label: '1-Pixel RGB Alteration Attack', actionType: 'ALTERS', category: 'Pixel Editing', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'pdf_text_mod', label: 'Document Text & Amount Alteration', actionType: 'ALTERS', category: 'Document Forgery', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'fake_metadata', label: 'Synthetic EXIF Header Injection', actionType: 'ALTERS', category: 'Header Manipulation', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'deepfake', label: 'Deepfake Synthetic Face Swap', actionType: 'ALTERS', category: 'AI Synthetic', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'copy_move', label: 'Copy-Move Region Cloning Attack', actionType: 'ALTERS', category: 'Cloning Forgery', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'splicing', label: 'Image Splicing & Overlay Attack', actionType: 'ALTERS', category: 'Splicing Forgery', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  { id: 'brightness_contrast', label: 'Brightness & Exposure Shift (+25%)', actionType: 'ALTERS', category: 'Filter Shift', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+
+  // 🙈 HIDES (Obscuring, masking, or concealing evidence details)
+  { id: 'object_removal', label: 'Inpainting Object / Person Removal', actionType: 'HIDES', category: 'Content Masking', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' },
+  { id: 'face_blur', label: 'Facial Obfuscation & Gaussian Blur', actionType: 'HIDES', category: 'Identity Obfuscation', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' },
+  { id: 'cropping', label: 'Border Pixel Cropping (-5%)', actionType: 'HIDES', category: 'Spatial Masking', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' },
+  { id: 'badge_blackout', label: 'Credential & License Plate Blackout', actionType: 'HIDES', category: 'Credential Masking', badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' }
 ];
 
 const AttackSimulator = () => {
   const [evidenceList, setEvidenceList] = useState([]);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
-  const [selectedVectorId, setSelectedVectorId] = useState('one_pixel_mod');
-  
-  const [executing, setExecuting] = useState(false);
+  const [actionFilter, setActionFilter] = useState('ALL'); // ALL | DESTROYS | ALTERS | HIDES
+
+  const filteredVectors = ATTACK_VECTORS.filter(
+    v => actionFilter === 'ALL' || v.actionType === actionFilter
+  );
   const [verifying, setVerifying] = useState(false);
   const [simulationResult, setSimulationResult] = useState(null);
   const [verificationResult, setVerificationResult] = useState(null);
+  const [activeTab, setActiveTab] = useState('verdict');
 
-  const [activeTab, setActiveTab] = useState('verdict'); // verdict | diff | ai | timeline | report
+  const [attackHistory, setAttackHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     fetchEvidences();
+    fetchAttackHistory();
   }, []);
 
-  const fetchEvidences = async () => {
+  const fetchAttackHistory = async () => {
+    setLoadingHistory(true);
     try {
-      const res = await api.get('/evidence');
-      const items = res.data?.data?.data || res.data?.data || [];
-      if (Array.isArray(items) && items.length > 0) {
-        setEvidenceList(items);
-        setSelectedEvidenceId(items[0].id);
+      const res = await api.get('/evidence/attack-history');
+      if (res.data?.success) {
+        setAttackHistory(res.data.data?.data || res.data.data || []);
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to fetch attack history:', e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await api.delete('/evidence/attack-history');
+      setAttackHistory([]);
+      showCyberToast.success('Attack history cleared', 'HISTORY_CLEARED');
+    } catch (e) {
+      showCyberToast.error('Failed to clear attack history');
+    }
   };
 
   const handleLaunchAttack = async (e) => {
@@ -98,6 +121,7 @@ const AttackSimulator = () => {
           `Attack Simulation Executed! New Modified CID: ${res.data.data.modifiedRecord.ipfsCid.slice(0, 16)}...`,
           'ATTACK_EXECUTED'
         );
+        fetchAttackHistory();
       }
     } catch (err) {
       showCyberToast.error('Failed to execute attack simulation');
@@ -180,17 +204,50 @@ const AttackSimulator = () => {
             )}
           </div>
 
-          {/* Tampering Vector Selection */}
-          <div className="space-y-2">
-            <label className="text-xs font-mono text-slate-400 uppercase block">2. Select Simulated Modification Vector:</label>
+          {/* Tampering Vector Selection Grouped by Legal Action Type */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-mono text-slate-400 uppercase block">2. Select Legal Attack Action Vector:</label>
+              
+              {/* Category Filter Pills */}
+              <div className="flex items-center gap-1">
+                {[
+                  { id: 'ALL', label: 'All' },
+                  { id: 'DESTROYS', label: '💥 Destroys' },
+                  { id: 'ALTERS', label: '✏️ Alters' },
+                  { id: 'HIDES', label: '🙈 Hides' }
+                ].map((pill) => (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => {
+                      setActionFilter(pill.id);
+                      const available = ATTACK_VECTORS.filter(v => pill.id === 'ALL' || v.actionType === pill.id);
+                      if (available.length > 0) setSelectedVectorId(available[0].id);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition ${
+                      actionFilter === pill.id
+                        ? pill.id === 'DESTROYS' ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                        : pill.id === 'ALTERS' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        : pill.id === 'HIDES' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                        : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800'
+                    }`}
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <select
               value={selectedVectorId}
               onChange={(e) => setSelectedVectorId(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-500 transition"
             >
-              {ATTACK_VECTORS.map((v) => (
+              {filteredVectors.map((v) => (
                 <option key={v.id} value={v.id}>
-                  [{v.category}] {v.label}
+                  [{v.actionType}] [{v.category}] {v.label}
                 </option>
               ))}
             </select>
@@ -409,6 +466,90 @@ const AttackSimulator = () => {
           )}
         </div>
       )}
+
+      {/* Persistent History of Executed Tampering Attacks Section */}
+      <div className="glassmorphism p-6 rounded-2xl border border-slate-700/50 shadow-xl space-y-6 font-mono text-xs">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+              <Clock size={16} className="text-red-400" /> Historical Attack Audit Ledger
+            </h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Logs of all simulated evidence tampering attacks, mutated CIDs, trust scores, and AI forensic reports.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={fetchAttackHistory}
+              disabled={loadingHistory}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition"
+            >
+              <RefreshCw size={13} className={loadingHistory ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+            <button
+              onClick={handleClearHistory}
+              className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/40 text-red-300 text-xs px-3 py-1.5 rounded-lg border border-red-800/40 transition"
+            >
+              <span>Clear History</span>
+            </button>
+          </div>
+        </div>
+
+        {loadingHistory ? (
+          <div className="py-8 text-center text-slate-400">
+            <Loader2 size={24} className="animate-spin mx-auto mb-2 text-cyan-400" />
+            <p>Fetching attack history logs...</p>
+          </div>
+        ) : attackHistory.length > 0 ? (
+          <div className="overflow-x-auto rounded-xl border border-slate-800">
+            <table className="w-full text-left font-mono text-xs">
+              <thead className="bg-slate-950 text-slate-400 text-[11px] border-b border-slate-800 uppercase">
+                <tr>
+                  <th className="p-3">ATTACK VECTOR</th>
+                  <th className="p-3">TARGET EVIDENCE</th>
+                  <th className="p-3">MUTATED CID (CID_v2)</th>
+                  <th className="p-3">TRUST SCORE</th>
+                  <th className="p-3">TIMESTAMP</th>
+                  <th className="p-3">AI FORENSIC EXPLANATION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/70 text-slate-300">
+                {attackHistory.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-900/60 transition-colors">
+                    <td className="p-3 font-bold text-amber-300">
+                      <div className="space-y-0.5">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                          item.actionType === 'DESTROYS' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                          item.actionType === 'HIDES' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
+                          'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          {item.actionType || 'ALTERS'}
+                        </span>
+                        <p className="text-slate-200 font-semibold">{item.scenarioName}</p>
+                      </div>
+                    </td>
+                    <td className="p-3 text-slate-200">{item.evidenceTitle}</td>
+                    <td className="p-3 text-red-400 break-all max-w-[180px] text-[11px]">{item.mutatedIpfsCid}</td>
+                    <td className="p-3 font-bold">
+                      <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+                        {item.trustScore}%
+                      </span>
+                    </td>
+                    <td className="p-3 text-slate-400 text-[10px]">{new Date(item.timestamp).toLocaleString()}</td>
+                    <td className="p-3 text-slate-300 text-[11px] max-w-[280px]">{item.aiSummary}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="py-8 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl">
+            <p>No attack simulation logs recorded yet. Launch an attack above to populate history.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
