@@ -38,6 +38,7 @@ import {
   Bar
 } from 'recharts';
 import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
 import useAuthStore from '../store/authStore';
 
 // Sample Chart Data
@@ -268,7 +269,7 @@ const Dashboard = () => {
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedHash(text);
-    toast.success('Hash copied to clipboard!');
+    showCyberToast.success('Hash copied to clipboard!');
     setTimeout(() => setCopiedHash(''), 2000);
   };
 

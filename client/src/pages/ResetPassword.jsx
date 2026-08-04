@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { KeyRound, Lock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
 import useAuthStore from '../store/authStore';
 
 const ResetPassword = () => {
@@ -14,26 +15,26 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!password || !confirmPassword) {
-      toast.error('Please fill in all fields');
+      showCyberToast.error('Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      showCyberToast.error('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters long');
+      showCyberToast.error('Password must be at least 6 characters long');
       return;
     }
 
     const result = await resetPassword(token, password);
     if (result.success) {
-      toast.success('Password updated successfully! Please log in.');
+      showCyberToast.success('Password updated successfully! Please log in.');
       navigate('/login');
     } else {
-      toast.error(result.message);
+      showCyberToast.error(result.message);
     }
   };
 

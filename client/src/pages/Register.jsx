@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, User, Mail, Lock, Wallet, Loader2 } from 'lucide-react';
+import { Shield, User, Mail, Lock, Wallet, Loader2, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
 import useAuthStore from '../store/authStore';
 
 const Register = () => {
@@ -14,10 +15,12 @@ const Register = () => {
     walletAddress: ''
   });
 
-  const { register, loading, error } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
+  const { register, loading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    if (error) clearError();
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -26,26 +29,26 @@ const Register = () => {
     const { name, email, password, confirmPassword, role, walletAddress } = formData;
 
     if (!name || !email || !password || !confirmPassword) {
-      toast.error('Please fill in all required fields');
+      showCyberToast.error('Please fill in all required fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      showCyberToast.error('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters long');
+      showCyberToast.error('Password must be at least 6 characters long');
       return;
     }
 
     const result = await register(name, email, password, role, walletAddress);
     if (result.success) {
-      toast.success('Account created successfully!');
+      showCyberToast.success('Account created successfully!');
       navigate('/');
     } else {
-      toast.error(result.message);
+      showCyberToast.error(result.message);
     }
   };
 

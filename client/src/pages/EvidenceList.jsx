@@ -201,13 +201,13 @@ const EvidenceList = () => {
       page: 1,
       limit: 10
     });
-    toast.success('Search filters reset to default');
+    showCyberToast.success('Search filters reset to default');
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedHash(text);
-    toast.success('Hash copied to clipboard!');
+    showCyberToast.success('Hash copied to clipboard!');
     setTimeout(() => setCopiedHash(''), 2000);
   };
 

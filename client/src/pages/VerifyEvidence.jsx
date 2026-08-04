@@ -295,7 +295,7 @@ const VerifyEvidence = () => {
   const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    toast.success('Copied to clipboard!');
+    showCyberToast.success('Copied to clipboard!');
     setTimeout(() => setCopiedField(''), 2000);
   };
 

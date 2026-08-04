@@ -5,7 +5,10 @@ import { ShieldCheck, AlertTriangle, XCircle, Info, ShieldAlert } from 'lucide-r
 /**
  * Cyber Toast Custom Renderer
  */
-export const showCyberToast = {
+/**
+ * Cyber Toast Custom Renderer
+ */
+const toastMethods = {
   success: (message, title = 'SUCCESS') => {
     return toast.custom((t) => (
       <div
@@ -122,5 +125,14 @@ export const showCyberToast = {
     ));
   }
 };
+
+export const showCyberToast = function(typeOrMessage, message, title) {
+  if (typeof typeOrMessage === 'string' && toastMethods[typeOrMessage]) {
+    return toastMethods[typeOrMessage](message, title);
+  }
+  return toastMethods.info(typeOrMessage, message || 'SYSTEM_NOTICE');
+};
+
+Object.assign(showCyberToast, toastMethods);
 
 export default showCyberToast;

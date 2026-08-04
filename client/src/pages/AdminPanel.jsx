@@ -26,6 +26,7 @@ import {
   Sliders
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
 import api from '../services/api';
 
 const AdminPanel = () => {
@@ -132,23 +133,23 @@ const AdminPanel = () => {
     try {
       const res = await api.post('/users', newUserForm);
       if (res.data?.success) {
-        toast.success('New user account created!');
+        showCyberToast.success('New user account created!');
         setShowCreateUserModal(false);
         setNewUserForm({ name: '', email: '', role: 'investigator', department: 'Digital Forensics Unit' });
         fetchUsers();
       }
     } catch (err) {
-      toast.error('Failed to create user account');
+      showCyberToast.error('Failed to create user account');
     }
   };
 
   const handleToggleUserStatus = async (userObj) => {
     try {
       await api.put(`/users/${userObj.id}`, { isActive: !userObj.isActive });
-      toast.success(`User ${userObj.name} status updated!`);
+      showCyberToast.success(`User ${userObj.name} status updated!`);
       fetchUsers();
     } catch (err) {
-      toast.error('Failed to update user status');
+      showCyberToast.error('Failed to update user status');
     }
   };
 
@@ -156,10 +157,10 @@ const AdminPanel = () => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
-      toast.success('User account removed');
+      showCyberToast.success('User account removed');
       fetchUsers();
     } catch (err) {
-      toast.error('Failed to delete user');
+      showCyberToast.error('Failed to delete user');
     }
   };
 
@@ -169,13 +170,13 @@ const AdminPanel = () => {
     try {
       const res = await api.post('/users/cases', newCaseForm);
       if (res.data?.success) {
-        toast.success('New forensic investigation case created!');
+        showCyberToast.success('New forensic investigation case created!');
         setShowCreateCaseModal(false);
         setNewCaseForm({ title: '', leadInvestigator: 'Agent Priya Sharma', department: 'Digital Forensics Division', priority: 'medium' });
         fetchCases();
       }
     } catch (err) {
-      toast.error('Failed to create case');
+      showCyberToast.error('Failed to create case');
     }
   };
 
@@ -183,10 +184,10 @@ const AdminPanel = () => {
     if (!window.confirm('Are you sure you want to delete this case?')) return;
     try {
       await api.delete(`/users/cases/${id}`);
-      toast.success('Case record removed');
+      showCyberToast.success('Case record removed');
       fetchCases();
     } catch (err) {
-      toast.error('Failed to delete case');
+      showCyberToast.error('Failed to delete case');
     }
   };
 
@@ -202,7 +203,7 @@ const AdminPanel = () => {
     setPermissions(updated);
     try {
       await api.put('/users/permissions', updated);
-      toast.success(`Updated ${role.toUpperCase()} permissions`);
+      showCyberToast.success(`Updated ${role.toUpperCase()} permissions`);
     } catch (err) {}
   };
 
@@ -211,10 +212,10 @@ const AdminPanel = () => {
     if (!window.confirm('Are you sure you want to delete this evidence record?')) return;
     try {
       await api.delete(`/evidence/${id}`);
-      toast.success('Evidence record deleted');
+      showCyberToast.success('Evidence record deleted');
       fetchEvidence();
     } catch (err) {
-      toast.error('Failed to delete evidence');
+      showCyberToast.error('Failed to delete evidence');
     }
   };
 

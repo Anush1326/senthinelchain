@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { KeyRound, Mail, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import showCyberToast from '../components/CyberToast';
 import useAuthStore from '../store/authStore';
 
 const ForgotPassword = () => {
@@ -13,7 +14,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error('Please enter your email address');
+      showCyberToast.error('Please enter your email address');
       return;
     }
 
@@ -21,9 +22,9 @@ const ForgotPassword = () => {
     if (result.success) {
       setSubmitted(true);
       setResetInfo(result);
-      toast.success('Password reset link generated');
+      showCyberToast.success('Password reset link generated');
     } else {
-      toast.error(result.message);
+      showCyberToast.error(result.message);
     }
   };
 

@@ -85,12 +85,12 @@ const UploadEvidence = () => {
 
     const ext = file.name.split('.').pop().toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      toast.error(`Invalid file type .${ext}! Allowed: Images, Videos, PDF, Word (.doc/.docx), Email (.eml/.msg), PCAPs, ZIP archives.`);
+      showCyberToast.error(`Invalid file type .${ext}! Allowed: Images, Videos, PDF, Word (.doc/.docx), Email (.eml/.msg), PCAPs, ZIP archives.`);
       return;
     }
 
     if (file.size > 100 * 1024 * 1024) {
-      toast.error('File size exceeds maximum limit of 100MB.');
+      showCyberToast.error('File size exceeds maximum limit of 100MB.');
       return;
     }
 
@@ -146,12 +146,12 @@ const UploadEvidence = () => {
     e.preventDefault();
 
     if (!selectedFile) {
-      toast.error('Please select an evidence file to upload.');
+      showCyberToast.error('Please select an evidence file to upload.');
       return;
     }
 
     if (!formData.title.trim()) {
-      toast.error('Please enter an evidence title.');
+      showCyberToast.error('Please enter an evidence title.');
       return;
     }
 
@@ -186,19 +186,19 @@ const UploadEvidence = () => {
       setUploadProgress(100);
       setUploading(false);
       setUploadResult(response.data.data);
-      toast.success('Evidence successfully uploaded, hashed & anchored!');
+      showCyberToast.success('Evidence successfully uploaded, hashed & anchored!');
     } catch (err) {
       setUploading(false);
       setUploadProgress(0);
       const msg = err.response?.data?.message || 'Evidence upload failed.';
-      toast.error(msg);
+      showCyberToast.error(msg);
     }
   };
 
   const copyText = (text, field) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    toast.success('Copied to clipboard!');
+    showCyberToast.success('Copied to clipboard!');
     setTimeout(() => setCopiedField(''), 2000);
   };
 
